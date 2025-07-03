@@ -65,6 +65,13 @@ class EnvLoader {
 	}
 
 	applyContextTransforms() {
+		// Auto-generate React environment variables from main variables
+		if (process.env.PORT) {
+			process.env.REACT_APP_SERVER_PORT = process.env.PORT;
+			process.env.REACT_APP_API_BASE_URL = `http://localhost:${process.env.PORT}`;
+			process.env.REACT_APP_SOCKET_URL = `http://localhost:${process.env.PORT}`;
+		}
+
 		// If we're in the client directory, map CLIENT_PORT to PORT for React
 		if (this.contextPath.includes("client") && process.env.CLIENT_PORT) {
 			process.env.PORT = process.env.CLIENT_PORT;

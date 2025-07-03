@@ -15,12 +15,13 @@ function App() {
 		const fetchConfig = async () => {
 			try {
 				// Use absolute URL for config fetch to ensure it works
+				const serverPort = process.env.REACT_APP_SERVER_PORT || '3050';
 				const configUrl =
 					process.env.NODE_ENV === "production"
 						? "/api/config"
 						: `${
 								process.env.REACT_APP_API_BASE_URL ||
-								"http://localhost:3050"
+								`http://localhost:${serverPort}`
 						  }/api/config`;
 
 				const response = await fetch(configUrl);
@@ -37,13 +38,14 @@ function App() {
 			} catch (error) {
 				console.error("Error fetching client configuration:", error);
 				// Fallback to default configuration
+				const serverPort = process.env.REACT_APP_SERVER_PORT || '3050';
 				setConfig({
 					socketUrl:
 						process.env.REACT_APP_SOCKET_URL ||
-						"http://localhost:3050",
+						`http://localhost:${serverPort}`,
 					apiBaseUrl:
 						process.env.REACT_APP_API_BASE_URL ||
-						"http://localhost:3050",
+						`http://localhost:${serverPort}`,
 					chartUpdateInterval: parseInt(
 						process.env.REACT_APP_CHART_UPDATE_INTERVAL || "5000"
 					),

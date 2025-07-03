@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "concurrently \"npm run server\" \"npm run client\"",
 		"server": "nodemon server/index.js",
-		"client": "cd client && npm start",
+		"client": "node client/start-client.js",
 		"build": "cd client && npm run build",
 		"build:prod": "cd client && npm run build && xcopy /E /Y build\\* ..\\server\\public\\",
 		"start": "node server/index.js",

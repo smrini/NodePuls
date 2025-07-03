@@ -20,6 +20,8 @@ const server = http.createServer(app);
 
 // Use CORS origin from environment configuration
 const corsOrigin = config.server.corsOrigin;
+console.log(`🔍 DEBUG - CLIENT_PORT: ${process.env.CLIENT_PORT}`);
+console.log(`🔍 DEBUG - Config CORS Origin: ${corsOrigin}`);
 console.log(`Server allowing CORS from: ${corsOrigin}`);
 
 const io = socketIo(server, {

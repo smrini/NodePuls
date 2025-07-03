@@ -58,7 +58,20 @@ class EnvLoader {
 			console.log(`✅ Loaded local environment from: ${localEnvPath}`);
 		}
 
+		// Apply context-specific transformations
+		this.applyContextTransforms();
+
 		// System environment variables have highest priority (already loaded)
+	}
+
+	applyContextTransforms() {
+		// If we're in the client directory, map CLIENT_PORT to PORT for React
+		if (this.contextPath.includes("client") && process.env.CLIENT_PORT) {
+			process.env.PORT = process.env.CLIENT_PORT;
+			console.log(
+				`🔄 Mapped CLIENT_PORT (${process.env.CLIENT_PORT}) to PORT for React client`
+			);
+		}
 	}
 
 	getConfig() {

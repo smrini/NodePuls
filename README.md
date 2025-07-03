@@ -267,6 +267,308 @@ ENABLE_DEBUG_LOGGING=true
 
 ## 🚀 Deployment
 
+### Ubuntu Server Installation
+
+#### 1. Prerequisites
+
+Install Node.js and npm on your Ubuntu server:
+
+```bash
+# Update package list
+sudo apt update
+
+# Install Node.js and npm (if not already installed)
+sudo apt install nodejs npm
+
+# Verify installation
+node --version
+npm --version
+```
+
+#### 2. Transfer Project Files
+
+Choose one of these methods to get your project on the server:
+
+**Option A: Using SCP (from your development machine):**
+```bash
+scp -r "path/to/ServerDasboard" username@your-server-ip:/home/username/
+```
+
+**Option B: Using Git:**
+```bash
+git clone <your-repository-url> ServerDasboard
+cd ServerDasboard
+```
+
+**Option C: Upload via SFTP/FTP client**
+
+#### 3. Install Dependencies
+
+```bash
+cd ServerDasboard
+
+# Install root dependencies
+npm install
+
+# Install client dependencies
+cd client
+npm install
+cd ..
+```
+
+#### 4. Configure Environment for Production
+
+Create or update your `.env` file for Ubuntu production:
+
+```bash
+nano .env
+```
+
+Update these key settings:
+
+```env
+# Production configuration
+PORT=3020
+NODE_ENV=production
+
+# Remove CLIENT_PORT for production (not needed)
+# CLIENT_PORT=3030  # Comment out or remove
+
+# Database path (default is fine)
+DB_PATH=./server/data/homelab.db
+
+# Ubuntu-specific paths (usually default)
+PROC_PATH=/proc
+SYS_PATH=/sys
+
+# Enable temperature monitoring (works better on Linux)
+ENABLE_CPU_TEMPERATURE=true
+
+# Security settings
+ENABLE_HELMET=true
+TRUST_PROXY=false
+
+# Monitoring intervals
+MONITOR_INTERVAL=5000
+WEBSITE_CHECK_INTERVAL="*/1 * * * *"
+```
+
+#### 5. Build for Production
+
+```bash
+# Build the React client and prepare for production
+npm run build:prod
+```
+
+#### 6. Test the Installation
+
+```bash
+# Start the server to test
+npm start
+```
+
+The dashboard should be accessible at `http://your-server-ip:3020`
+
+Press `Ctrl+C` to stop the test server.
+
+#### 7. Set Up as System Service (Recommended)
+
+Create a systemd service file:
+
+```bash
+sudo nano /etc/systemd/system/homelab-dashboard.service
+```
+
+Add this configuration (replace `yourusername` and adjust paths):
+
+```ini
+[Unit]
+Description=Homelab Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=yourusername
+WorkingDirectory=/home/yourusername/ServerDasboard
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3020
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start the service:
+
+```bash
+# Reload systemd daemon
+sudo systemctl daemon-reload
+
+# Enable service to start on boot
+sudo systemctl enable homelab-dashboard
+
+# Start the service
+sudo systemctl start homelab-dashboard
+
+# Check service status
+sudo systemctl status homelab-dashboard
+```
+
+#### 8. Configure Firewall
+
+Allow the dashboard port through the firewall:
+
+```bash
+# If using UFW (Ubuntu Firewall)
+sudo ufw allow 3020
+
+# If using iptables
+sudo iptables -A INPUT -p tcp --dport 3020 -j ACCEPT
+sudo iptables-save
+```
+
+#### 9. Set Up Nginx Reverse Proxy (Optional)
+
+Install and configure nginx for better security and domain access:
+
+```bash
+# Install nginx
+sudo apt install nginx
+
+# Create nginx configuration
+sudo nano /etc/nginx/sites-available/homelab-dashboard
+```
+
+Add this nginx configuration:
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;  # Replace with your domain or server IP
+
+    location / {
+        proxy_pass http://localhost:3020;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+Enable the site:
+
+```bash
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/homelab-dashboard /etc/nginx/sites-enabled/
+
+# Test nginx configuration
+sudo nginx -t
+
+# Restart nginx
+sudo systemctl restart nginx
+
+# Allow HTTP through firewall
+sudo ufw allow 'Nginx Full'
+```
+
+#### 10. Database Setup and Permissions
+
+Ensure proper database setup:
+
+```bash
+# Create data directory if needed
+mkdir -p server/data
+
+# Set proper permissions
+chmod 755 server/data
+
+# The SQLite database will be created automatically on first run
+```
+
+#### 11. Monitor and Maintenance
+
+**View service logs:**
+```bash
+# View real-time logs
+sudo journalctl -u homelab-dashboard -f
+
+# View recent logs
+sudo journalctl -u homelab-dashboard --since "1 hour ago"
+
+# View all logs
+sudo journalctl -u homelab-dashboard
+```
+
+**Service management:**
+```bash
+# Start service
+sudo systemctl start homelab-dashboard
+
+# Stop service
+sudo systemctl stop homelab-dashboard
+
+# Restart service
+sudo systemctl restart homelab-dashboard
+
+# Check status
+sudo systemctl status homelab-dashboard
+```
+
+#### 12. Updates and Maintenance
+
+For future updates:
+
+```bash
+# Stop the service
+sudo systemctl stop homelab-dashboard
+
+# Navigate to project directory
+cd /home/yourusername/ServerDasboard
+
+# Update code (if using git)
+git pull
+
+# Install any new dependencies
+npm install
+cd client && npm install && cd ..
+
+# Rebuild for production
+npm run build:prod
+
+# Start the service
+sudo systemctl start homelab-dashboard
+```
+
+#### 13. Access Your Dashboard
+
+After completing the installation:
+
+- **Direct access**: `http://your-server-ip:3020`
+- **With nginx reverse proxy**: `http://your-domain.com` (port 80)
+- **HTTPS** (if SSL configured): `https://your-domain.com`
+
+#### 14. SSL/HTTPS Setup (Optional)
+
+For secure HTTPS access, use Let's Encrypt:
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Get SSL certificate
+sudo certbot --nginx -d your-domain.com
+
+# Test auto-renewal
+sudo certbot renew --dry-run
+```
+
 ### Production Build
 
 1. **Standard Production:**

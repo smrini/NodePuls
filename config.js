@@ -1,5 +1,6 @@
-// Load environment variables
-require("dotenv").config();
+// Load environment variables using centralized loader
+const EnvLoader = require("./env-loader");
+new EnvLoader(__dirname);
 
 // Helper function to parse environment variables
 const parseEnvVar = {

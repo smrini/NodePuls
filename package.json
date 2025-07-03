@@ -12,7 +12,8 @@
 		"start": "node server/index.js",
 		"start:prod": "npm run build:prod && npm start",
 		"install:all": "npm install && cd client && npm install",
-		"validate-env": "node validate-env.js"
+		"validate-env": "node validate-env.js",
+		"setup-env": "node setup-env.js"
 	},
 	"keywords": [
 		"homelab",

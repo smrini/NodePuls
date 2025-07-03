@@ -1,5 +1,7 @@
-// Load environment variables first
-require("dotenv").config();
+// Load environment variables first using centralized loader
+const path = require("path");
+const EnvLoader = require("../env-loader");
+new EnvLoader(__dirname);
 
 const express = require("express");
 const http = require("http");
@@ -7,7 +9,6 @@ const socketIo = require("socket.io");
 const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
-const path = require("path");
 const cron = require("node-cron");
 
 const systemMonitor = require("./services/systemMonitor");
@@ -17,23 +18,13 @@ const config = require("../config");
 const app = express();
 const server = http.createServer(app);
 
-// Allow connections from the client development server (port 6000)
-// In production, we'll use the config.server.corsOrigin setting
-const developmentClientUrl = "http://localhost:6000";
-console.log(
-	`Server allowing CORS from: ${
-		process.env.NODE_ENV === "development"
-			? developmentClientUrl
-			: config.server.corsOrigin
-	}`
-);
+// Use CORS origin from environment configuration
+const corsOrigin = config.server.corsOrigin;
+console.log(`Server allowing CORS from: ${corsOrigin}`);
 
 const io = socketIo(server, {
 	cors: {
-		origin:
-			process.env.NODE_ENV === "development"
-				? [developmentClientUrl]
-				: config.server.corsOrigin,
+		origin: corsOrigin,
 		methods: ["GET", "POST"],
 		credentials: true,
 	},
@@ -44,10 +35,7 @@ app.use(helmet());
 app.use(compression());
 app.use(
 	cors({
-		origin:
-			process.env.NODE_ENV === "development"
-				? developmentClientUrl
-				: config.server.corsOrigin,
+		origin: corsOrigin,
 		credentials: true,
 	})
 );

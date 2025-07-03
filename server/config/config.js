@@ -1,3 +1,8 @@
+// Load environment variables using centralized loader
+const path = require("path");
+const EnvLoader = require("../../env-loader");
+new EnvLoader(__dirname);
+
 const config = {
 	// System monitoring interval in milliseconds
 	systemUpdateInterval: process.env.SYSTEM_UPDATE_INTERVAL || 5000, // 5 seconds

@@ -241,20 +241,21 @@ if (process.env.NODE_ENV === "production") {
 		res.sendFile(indexPath, (err) => {
 			if (err) {
 				console.error(`❌ Error serving index.html:`, err);
-				res.status(500).send('Error loading page');
+				res.status(500).send("Error loading page");
 			}
 		});
 	});
 } else {
 	app.get("*", (req, res) => {
-		res.json({ 
-			message: "Development mode - React app should be running separately",
+		res.json({
+			message:
+				"Development mode - React app should be running separately",
 			endpoints: {
 				health: "/api/health",
 				config: "/api/config",
 				system: "/api/system",
-				websites: "/api/websites"
-			}
+				websites: "/api/websites",
+			},
 		});
 	});
 }

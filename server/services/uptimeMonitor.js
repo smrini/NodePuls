@@ -14,6 +14,9 @@ class UptimeMonitor {
 
 	async init() {
 		try {
+			// Wait for database to be fully initialized
+			await this.db.waitForInit();
+
 			const websites = await this.db.getAllWebsites();
 			this.websites.clear();
 			websites.forEach((website) => {

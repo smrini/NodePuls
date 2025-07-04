@@ -33,7 +33,8 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(helmet());
+// Temporarily disable Helmet to test CSP issues
+// app.use(helmet());
 app.use(compression());
 app.use(
 	cors({
@@ -43,9 +44,29 @@ app.use(
 );
 app.use(express.json());
 
-// Serve static files from React build
+// Serve static files from React build in production
 if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "public")));
+	const publicPath = path.join(__dirname, "public");
+	console.log(`📁 Serving static files from: ${publicPath}`);
+
+	// Check if index.html exists
+	const fs = require("fs");
+	const indexPath = path.join(publicPath, "index.html");
+	if (fs.existsSync(indexPath)) {
+		console.log(`✅ Found index.html at: ${indexPath}`);
+	} else {
+		console.log(`❌ Missing index.html at: ${indexPath}`);
+		try {
+			console.log(
+				`📂 Public directory contents:`,
+				fs.readdirSync(publicPath).join(", ")
+			);
+		} catch (e) {
+			console.log(`❌ Public directory doesn't exist: ${publicPath}`);
+		}
+	}
+
+	app.use(express.static(publicPath));
 }
 
 // API Routes
@@ -215,7 +236,26 @@ cron.schedule("*/1 * * * *", async () => {
 // Serve React app for all other routes in production
 if (process.env.NODE_ENV === "production") {
 	app.get("*", (req, res) => {
-		res.sendFile(path.join(__dirname, "public", "index.html"));
+		const indexPath = path.join(__dirname, "public", "index.html");
+		console.log(`📄 Serving index.html for ${req.url} from: ${indexPath}`);
+		res.sendFile(indexPath, (err) => {
+			if (err) {
+				console.error(`❌ Error serving index.html:`, err);
+				res.status(500).send('Error loading page');
+			}
+		});
+	});
+} else {
+	app.get("*", (req, res) => {
+		res.json({ 
+			message: "Development mode - React app should be running separately",
+			endpoints: {
+				health: "/api/health",
+				config: "/api/config",
+				system: "/api/system",
+				websites: "/api/websites"
+			}
+		});
 	});
 }
 

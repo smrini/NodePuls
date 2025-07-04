@@ -5,30 +5,47 @@ class DatabaseService {
 	constructor() {
 		this.dbPath = path.join(__dirname, "..", "data", "homelab.db");
 		this.db = null;
-		this.init();
+		this.initialized = false;
+		this._initPromise = this.init();
 	}
 
-	init() {
-		// Create data directory if it doesn't exist
-		const fs = require("fs");
-		const dataDir = path.dirname(this.dbPath);
-		if (!fs.existsSync(dataDir)) {
-			fs.mkdirSync(dataDir, { recursive: true });
-		}
-
-		// Initialize database
-		this.db = new sqlite3.Database(this.dbPath, (err) => {
-			if (err) {
-				console.error("❌ Error opening database:", err.message);
-			} else {
-				console.log("✅ Connected to SQLite database");
-				this.createTables();
+	async init() {
+		return new Promise((resolve, reject) => {
+			// Create data directory if it doesn't exist
+			const fs = require("fs");
+			const dataDir = path.dirname(this.dbPath);
+			if (!fs.existsSync(dataDir)) {
+				fs.mkdirSync(dataDir, { recursive: true });
 			}
+
+			// Initialize database
+			this.db = new sqlite3.Database(this.dbPath, async (err) => {
+				if (err) {
+					console.error("❌ Error opening database:", err.message);
+					reject(err);
+				} else {
+					console.log("✅ Connected to SQLite database");
+					try {
+						await this.createTables();
+						this.initialized = true;
+						resolve();
+					} catch (error) {
+						reject(error);
+					}
+				}
+			});
 		});
 	}
 
+	async waitForInit() {
+		if (!this.initialized) {
+			await this._initPromise;
+		}
+	}
+
 	createTables() {
-		const createWebsitesTable = `
+		return new Promise((resolve, reject) => {
+			const createWebsitesTable = `
             CREATE TABLE IF NOT EXISTS websites (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -45,7 +62,7 @@ class DatabaseService {
             )
         `;
 
-		const createHistoryTable = `
+			const createHistoryTable = `
             CREATE TABLE IF NOT EXISTS website_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 website_id TEXT,
@@ -57,36 +74,59 @@ class DatabaseService {
             )
         `;
 
-		this.db.run(createWebsitesTable, (err) => {
-			if (err) {
-				console.error("❌ Error creating websites table:", err.message);
-			} else {
-				console.log("✅ Websites table ready");
-				// Add up_since column if it doesn't exist (migration)
-				this.db.run(
-					"ALTER TABLE websites ADD COLUMN up_since TEXT",
-					(err) => {
-						if (err && !err.message.includes("duplicate column")) {
-							console.error(
-								"❌ Error adding up_since column:",
-								err.message
-							);
-						} else if (!err) {
-							console.log(
-								"✅ Added up_since column to websites table"
-							);
-						}
-					}
-				);
-			}
-		});
+			let tablesCreated = 0;
+			const totalTables = 2;
 
-		this.db.run(createHistoryTable, (err) => {
-			if (err) {
-				console.error("❌ Error creating history table:", err.message);
-			} else {
-				console.log("✅ Website history table ready");
-			}
+			this.db.run(createWebsitesTable, (err) => {
+				if (err) {
+					console.error(
+						"❌ Error creating websites table:",
+						err.message
+					);
+					reject(err);
+				} else {
+					console.log("✅ Websites table ready");
+					// Add up_since column if it doesn't exist (migration)
+					this.db.run(
+						"ALTER TABLE websites ADD COLUMN up_since TEXT",
+						(err) => {
+							if (
+								err &&
+								!err.message.includes("duplicate column")
+							) {
+								console.error(
+									"❌ Error adding up_since column:",
+									err.message
+								);
+							} else if (!err) {
+								console.log(
+									"✅ Added up_since column to websites table"
+								);
+							}
+							tablesCreated++;
+							if (tablesCreated === totalTables) {
+								resolve();
+							}
+						}
+					);
+				}
+			});
+
+			this.db.run(createHistoryTable, (err) => {
+				if (err) {
+					console.error(
+						"❌ Error creating history table:",
+						err.message
+					);
+					reject(err);
+				} else {
+					console.log("✅ Website history table ready");
+					tablesCreated++;
+					if (tablesCreated === totalTables) {
+						resolve();
+					}
+				}
+			});
 		});
 	}
 
@@ -173,7 +213,8 @@ class DatabaseService {
 		});
 	}
 
-	getAllWebsites() {
+	async getAllWebsites() {
+		await this.waitForInit();
 		return new Promise((resolve, reject) => {
 			this.db.all(
 				"SELECT * FROM websites ORDER BY created_at DESC",

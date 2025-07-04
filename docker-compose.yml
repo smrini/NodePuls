@@ -1,0 +1,97 @@
+version: "3.8" # Consider updating to a newer Docker Compose file format version for newer features.
+
+services:
+    homelab-dashboard:
+        build:
+            context: . # Explicitly define the build context
+            dockerfile: Dockerfile # Explicitly define the Dockerfile path
+        container_name: homelab-dashboard
+        restart: unless-stopped
+        ports:
+            - "3020:3020" # Map container port 3020 to host port 3020
+        environment:
+            # Application-specific environment variables for configuration
+            # NODE_ENV should almost always be 'production' in a deployed container
+            - NODE_ENV=production
+            - PORT=3020
+            - CLIENT_PORT=3020
+            - DB_PATH=/usr/src/app/server/data/homelab.db
+            - CORS_ORIGIN=http://localhost:3020,http://127.0.0.1:3020,http://0.0.0.0:3020 # Adjust if you have a specific domain or IP
+
+            # Monitoring settings
+            - MONITOR_INTERVAL=5000
+            - CLEANUP_INTERVAL=24
+            - DEFAULT_TIMEOUT=10000
+            - MAX_HISTORY_ENTRIES=100
+            - WEBSITE_DOWN_THRESHOLD=3
+            - SYSTEM_UPDATE_INTERVAL=5000
+            - WEBSITE_CHECK_INTERVAL=*/1 * * * *
+            - WEBSITE_CHECK_TIMEOUT=5000
+            - MAX_HISTORY_LENGTH=60
+            - MAX_WEBSITE_HISTORY=1440
+
+            # Feature flags
+            - ENABLE_CPU_TEMPERATURE=true
+            - ENABLE_DISK_IO_MONITORING=true
+            - ENABLE_PROCESS_MONITORING=true
+            - ENABLE_EMAIL_NOTIFICATIONS=false # Consider using secrets for credentials if enabling
+
+            # Security settings for the application itself (not container security)
+            - ENABLE_HELMET=true
+            - TRUST_PROXY=false
+
+            # Logging settings
+            - LOG_LEVEL=info
+            - ENABLE_DEBUG_LOGGING=false
+
+            # Performance settings
+            - COMPRESSION_LEVEL=6
+            - REQUEST_TIMEOUT=10000
+            - MAX_CONNECTIONS=100
+
+            # System paths for Docker/Linux (used by the application to find host info)
+            - PROC_PATH=/proc
+            - SYS_PATH=/sys
+
+            # Dashboard display settings
+            - DASHBOARD_DOMAIN=localhost # Change to your actual domain/IP if accessed remotely
+            - ENABLE_HTTPS_REDIRECT=false
+            - DEFAULT_WEBSITES=[]
+
+        volumes:
+            # Mount host /proc, /sys, and /dev for system monitoring.
+            # Using 'rw' (read-write) as required for AppArmor interaction (or other tools).
+            # WARNING: Mounting these host paths with rw, especially combined with 'privileged: true',
+            # significantly reduces container isolation and increases security risk.
+            - /proc:/proc:rw
+            - /sys:/sys:rw
+            - /dev:/dev:rw
+            # Persistent volume for SQLite database data
+            - homelab-data:/usr/src/app/server/data
+
+        networks:
+            - web-network # Connects to the 'web-network' defined below
+
+        # Container Security Configuration (HIGH PRIVILEGES)
+        # These settings provide the container with extensive host access.
+        # Use with caution and only if absolutely necessary for application functionality.
+        privileged: true # Grants all capabilities to the container.
+        pid: host        # Allows container processes to see and interact with host PIDs.
+        ipc: host        # Shares IPC namespace with the host, allowing inter-process communication.
+        security_opt:
+            - "apparmor:unconfined" # Disables AppArmor enforcement for this container.
+            - "seccomp:unconfined"  # Disables seccomp filtering (allows all syscalls).
+            - "label:disable"       # Disables SELinux labeling if SELinux is active.
+        cap_add:
+            - ALL # Adds all Linux capabilities to the container.
+        cap_drop: [] # Explicitly drops no capabilities (default for 'privileged: true').
+
+volumes:
+    homelab-data:
+        driver: local # Defines a local Docker volume for persistent data
+
+networks:
+    web-network:
+        external: true # Assumes 'web-network' is already created externally (e.g., by another compose file or manually)
+        # If 'web-network' is not external and should be created by this compose file,
+        # change 'external: true' to 'name: web-network' or remove it to use default naming.

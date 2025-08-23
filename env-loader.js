@@ -44,6 +44,9 @@ class EnvLoader {
 	loadEnvironment() {
 		const dotenv = require("dotenv");
 
+		// Store original system environment variables (highest priority)
+		const systemEnvVars = { ...process.env };
+
 		// Load root .env file first (lowest priority)
 		const rootEnvPath = path.join(this.rootPath, ".env");
 		if (fs.existsSync(rootEnvPath)) {
@@ -51,17 +54,25 @@ class EnvLoader {
 			console.log(`✅ Loaded root environment from: ${rootEnvPath}`);
 		}
 
-		// Load local .env file (higher priority)
+		// Load local .env file (medium priority)
 		const localEnvPath = path.join(this.contextPath, ".env");
 		if (fs.existsSync(localEnvPath)) {
 			dotenv.config({ path: localEnvPath, override: true });
 			console.log(`✅ Loaded local environment from: ${localEnvPath}`);
 		}
 
+		// Restore system environment variables (highest priority)
+		// This ensures Docker environment variables always take precedence
+		Object.keys(systemEnvVars).forEach(key => {
+			if (systemEnvVars[key] !== undefined) {
+				process.env[key] = systemEnvVars[key];
+			}
+		});
+
 		// Apply context-specific transformations
 		this.applyContextTransforms();
 
-		// System environment variables have highest priority (already loaded)
+		console.log(`🔧 Final PORT value: ${process.env.PORT} (after env hierarchy)`);
 	}
 
 	applyContextTransforms() {

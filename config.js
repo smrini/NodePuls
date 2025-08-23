@@ -17,10 +17,35 @@ const parseEnvVar = {
 
 // Get server port for dynamic URL generation
 const serverPort = parseEnvVar.int(process.env.PORT, 3020);
-const baseUrl = `http://localhost:${serverPort}`;
 
-// Use single port for CORS - allow same origin
-const autoCorsOrigin = `http://localhost:${serverPort}`;
+// For Docker/single-port setup, use relative URLs that work from browser
+let baseUrl, apiBaseUrl, socketUrl;
+
+if (process.env.NODE_ENV === "production") {
+	// In production (Docker), use relative URLs - browser will use current origin
+	baseUrl = "";  // Relative to current origin
+	apiBaseUrl = "";  // API calls use relative URLs
+	socketUrl = "";   // Socket.IO uses relative URL (same origin)
+} else {
+	// In development, use explicit localhost URLs
+	baseUrl = `http://localhost:${serverPort}`;
+	apiBaseUrl = baseUrl;
+	socketUrl = baseUrl;
+}
+
+// Auto-generate CORS origin based on environment
+let autoCorsOrigin;
+if (process.env.NODE_ENV === "production") {
+	// In production/Docker, allow multiple origins for flexibility
+	autoCorsOrigin = [
+		`http://localhost:${serverPort}`,
+		`http://127.0.0.1:${serverPort}`,
+		`http://0.0.0.0:${serverPort}`
+	].join(",");
+} else {
+	// In development, use single origin
+	autoCorsOrigin = `http://localhost:${serverPort}`;
+}
 
 console.log(`🔍 CONFIG DEBUG - NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`🔍 CONFIG DEBUG - SERVER_PORT: ${serverPort}`);
@@ -65,11 +90,11 @@ const config = {
 		port: serverPort, // Use same port as server
 		apiBaseUrl: parseEnvVar.string(
 			process.env.REACT_APP_API_BASE_URL,
-			baseUrl
+			apiBaseUrl
 		),
 		socketUrl: parseEnvVar.string(
 			process.env.REACT_APP_SOCKET_URL,
-			baseUrl
+			socketUrl
 		),
 		chartUpdateInterval: parseEnvVar.int(
 			process.env.REACT_APP_CHART_UPDATE_INTERVAL,

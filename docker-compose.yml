@@ -16,7 +16,7 @@ services:
             - PORT=3020
             # CLIENT_PORT removed - using single port setup
             - DB_PATH=/usr/src/app/server/data/homelab.db
-            - CORS_ORIGIN=http://localhost:3020,http://127.0.0.1:3020,http://0.0.0.0:3020 # Adjust if you have a specific domain or IP
+            # CORS_ORIGIN will be auto-generated from PORT for single port setup
 
             # Monitoring settings
             - MONITOR_INTERVAL=5000

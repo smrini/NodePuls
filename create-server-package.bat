@@ -1,7 +1,7 @@
 @echo off
 echo ==========================================
 echo  Homelab Dashboard - Server Package Creator
-echo  WITH DOCKER MONITORING FIXES
+echo  WITH DOCKER CONNECTION FIXES
 echo ==========================================
 echo.
 
@@ -26,12 +26,13 @@ mkdir "%DEST_DIR%"
 
 echo.
 echo Copying essential files for server deployment...
-echo (Including Docker monitoring fixes)
+echo (Including Docker connection fixes)
 echo.
 
 REM Copy root configuration files
 echo [1/8] Copying root configuration files...
 copy "%SOURCE_DIR%\package.json" "%DEST_DIR%\" >nul
+copy "%SOURCE_DIR%\package-lock.json" "%DEST_DIR%\" >nul
 copy "%SOURCE_DIR%\config.js" "%DEST_DIR%\" >nul
 copy "%SOURCE_DIR%\env-loader.js" "%DEST_DIR%\" >nul
 copy "%SOURCE_DIR%\.env.docker" "%DEST_DIR%\" >nul

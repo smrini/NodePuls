@@ -14,7 +14,7 @@ services:
             # NODE_ENV should almost always be 'production' in a deployed container
             - NODE_ENV=production
             - PORT=3020
-            - CLIENT_PORT=3020
+            # CLIENT_PORT removed - using single port setup
             - DB_PATH=/usr/src/app/server/data/homelab.db
             - CORS_ORIGIN=http://localhost:3020,http://127.0.0.1:3020,http://0.0.0.0:3020 # Adjust if you have a specific domain or IP
 
@@ -70,7 +70,7 @@ services:
             - homelab-data:/usr/src/app/server/data
 
         networks:
-            - web-network # Connects to the 'web-network' defined below
+            - homelab-network # Connects to the homelab network
 
         # Container Security Configuration (HIGH PRIVILEGES)
         # These settings provide the container with extensive host access.
@@ -91,7 +91,7 @@ volumes:
         driver: local # Defines a local Docker volume for persistent data
 
 networks:
-    web-network:
-        external: true # Assumes 'web-network' is already created externally (e.g., by another compose file or manually)
-        # If 'web-network' is not external and should be created by this compose file,
-        # change 'external: true' to 'name: web-network' or remove it to use default naming.
+    homelab-network:
+        name: homelab-network
+        driver: bridge
+        # Network for homelab dashboard communication

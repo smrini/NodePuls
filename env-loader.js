@@ -72,13 +72,10 @@ class EnvLoader {
 			process.env.REACT_APP_SOCKET_URL = `http://localhost:${process.env.PORT}`;
 		}
 
-		// If we're in the client directory, map CLIENT_PORT to PORT for React
-		if (this.contextPath.includes("client") && process.env.CLIENT_PORT) {
-			process.env.PORT = process.env.CLIENT_PORT;
-			console.log(
-				`🔄 Mapped CLIENT_PORT (${process.env.CLIENT_PORT}) to PORT for React client`
-			);
-		}
+		// Single port setup - no need for CLIENT_PORT mapping
+		console.log(
+			`🔄 Using single port setup: ${process.env.PORT || 3020}`
+		);
 	}
 
 	getConfig() {

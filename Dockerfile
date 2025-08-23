@@ -104,13 +104,13 @@ RUN chown -R nodejs:nodejs /usr/src/app
 USER nodejs
 
 # Expose the port the application listens on
+# This should match the PORT environment variable
 EXPOSE 3020
 
 # Health check to ensure the application is running and responsive
-# Using 'curl' is often preferred over 'wget' for health checks in Alpine.
-# install curl: RUN apk add --no-cache curl
+# Using 'wget' to check application health
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3020/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3020/api/health || exit 1
 
 # Define the command to run the application
 # Use 'node server/index.js' if your package.json 'start' script is complex

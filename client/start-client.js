@@ -1,36 +1,10 @@
 #!/usr/bin/env node
 
-// Start script for React client with centralized env loading
-const { spawn } = require("child_process");
-const path = require("path");
+// Note: This script is no longer used in single-port setup
+// The React app is now built and served by the Express server
 
-// Load environment using our centralized loader
-const EnvLoader = require("../env-loader");
-new EnvLoader(__dirname);
+console.log("❌ This script is deprecated in single-port setup");
+console.log("📝 Use 'npm run dev' from the root directory instead");
+console.log("🔧 This will build the React app and serve it through the Express server");
 
-console.log(
-	`🚀 Starting React client on port ${
-		process.env.CLIENT_PORT || process.env.PORT || 3000
-	}`
-);
-
-// Start React development server
-const reactScript = spawn("npm", ["start"], {
-	stdio: "inherit",
-	shell: true,
-	cwd: __dirname,
-	env: {
-		...process.env,
-		PORT: process.env.CLIENT_PORT || process.env.PORT || 3000,
-	},
-});
-
-reactScript.on("close", (code) => {
-	console.log(`React client exited with code ${code}`);
-	process.exit(code);
-});
-
-reactScript.on("error", (error) => {
-	console.error("Failed to start React client:", error);
-	process.exit(1);
-});
+process.exit(1);

@@ -44,30 +44,30 @@ app.use(
 );
 app.use(express.json());
 
-// Serve static files from React build in production
-if (process.env.NODE_ENV === "production") {
-	const publicPath = path.join(__dirname, "public");
-	console.log(`📁 Serving static files from: ${publicPath}`);
+// Serve static files from React build
+const publicPath = path.join(__dirname, "public");
+console.log(`📁 Serving static files from: ${publicPath}`);
 
-	// Check if index.html exists
-	const fs = require("fs");
-	const indexPath = path.join(publicPath, "index.html");
-	if (fs.existsSync(indexPath)) {
-		console.log(`✅ Found index.html at: ${indexPath}`);
-	} else {
-		console.log(`❌ Missing index.html at: ${indexPath}`);
-		try {
-			console.log(
-				`📂 Public directory contents:`,
-				fs.readdirSync(publicPath).join(", ")
-			);
-		} catch (e) {
-			console.log(`❌ Public directory doesn't exist: ${publicPath}`);
-		}
+// Check if index.html exists
+const fs = require("fs");
+const indexPath = path.join(publicPath, "index.html");
+if (fs.existsSync(indexPath)) {
+	console.log(`✅ Found index.html at: ${indexPath}`);
+} else {
+	console.log(`❌ Missing index.html at: ${indexPath}`);
+	console.log(`💡 Run 'npm run build' to create the React build files`);
+	try {
+		console.log(
+			`📂 Public directory contents:`,
+			fs.readdirSync(publicPath).join(", ")
+		);
+	} catch (e) {
+		console.log(`❌ Public directory doesn't exist: ${publicPath}`);
+		console.log(`💡 Run 'npm run build' to create the React build files`);
 	}
-
-	app.use(express.static(publicPath));
 }
+
+app.use(express.static(publicPath));
 
 // API Routes
 app.get("/api/config", (req, res) => {
@@ -233,10 +233,13 @@ cron.schedule("*/1 * * * *", async () => {
 	io.emit("websites", await uptimeMonitor.getWebsites());
 });
 
-// Serve React app for all other routes in production
-if (process.env.NODE_ENV === "production") {
-	app.get("*", (req, res) => {
-		const indexPath = path.join(__dirname, "public", "index.html");
+// Serve React app for all other routes
+app.get("*", (req, res) => {
+	const indexPath = path.join(__dirname, "public", "index.html");
+	
+	// Check if the file exists before trying to serve it
+	const fs = require("fs");
+	if (fs.existsSync(indexPath)) {
 		console.log(`📄 Serving index.html for ${req.url} from: ${indexPath}`);
 		res.sendFile(indexPath, (err) => {
 			if (err) {
@@ -244,12 +247,10 @@ if (process.env.NODE_ENV === "production") {
 				res.status(500).send("Error loading page");
 			}
 		});
-	});
-} else {
-	app.get("*", (req, res) => {
-		res.json({
-			message:
-				"Development mode - React app should be running separately",
+	} else {
+		res.status(404).json({
+			error: "React app not built",
+			message: "Run 'npm run build' to create the React build files",
 			endpoints: {
 				health: "/api/health",
 				config: "/api/config",
@@ -257,8 +258,8 @@ if (process.env.NODE_ENV === "production") {
 				websites: "/api/websites",
 			},
 		});
-	});
-}
+	}
+});
 
 const startServer = async () => {
 	try {

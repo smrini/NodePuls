@@ -15,26 +15,22 @@ const parseEnvVar = {
 	string: (value, defaultValue) => value || defaultValue,
 };
 
-// Get server and client ports for dynamic URL generation
-const serverPort = parseEnvVar.int(process.env.PORT, 3050);
-const clientPort = parseEnvVar.int(process.env.CLIENT_PORT, 3000);
+// Get server port for dynamic URL generation
+const serverPort = parseEnvVar.int(process.env.PORT, 3020);
 const baseUrl = `http://localhost:${serverPort}`;
 
-// Auto-generate CORS origin based on client port for development
-const autoCorsOrigin =
-	process.env.NODE_ENV === "production"
-		? "*"
-		: `http://localhost:${clientPort}`;
+// Use single port for CORS - allow same origin
+const autoCorsOrigin = `http://localhost:${serverPort}`;
 
 console.log(`🔍 CONFIG DEBUG - NODE_ENV: ${process.env.NODE_ENV}`);
-console.log(`🔍 CONFIG DEBUG - CLIENT_PORT: ${clientPort}`);
+console.log(`🔍 CONFIG DEBUG - SERVER_PORT: ${serverPort}`);
 console.log(`🔍 CONFIG DEBUG - autoCorsOrigin: ${autoCorsOrigin}`);
 console.log(`🔍 CONFIG DEBUG - CORS_ORIGIN env: ${process.env.CORS_ORIGIN}`);
 
 const config = {
 	server: {
 		port: serverPort,
-		nodeEnv: parseEnvVar.string(process.env.NODE_ENV, "production"),
+		nodeEnv: parseEnvVar.string(process.env.NODE_ENV, "development"),
 		corsOrigin: parseEnvVar.string(process.env.CORS_ORIGIN, autoCorsOrigin),
 	},
 	database: {
@@ -66,7 +62,7 @@ const config = {
 		),
 	},
 	client: {
-		port: clientPort,
+		port: serverPort, // Use same port as server
 		apiBaseUrl: parseEnvVar.string(
 			process.env.REACT_APP_API_BASE_URL,
 			baseUrl

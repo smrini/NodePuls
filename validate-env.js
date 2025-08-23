@@ -17,12 +17,6 @@ const checks = [
 		message: "Port should be between 1024 and 65535",
 	},
 	{
-		name: "Client Port",
-		value: config.client.port,
-		valid: config.client.port >= 1024 && config.client.port <= 65535,
-		message: "Port should be between 1024 and 65535",
-	},
-	{
 		name: "Monitor Interval",
 		value: config.monitoring.interval,
 		valid: config.monitoring.interval >= 1000,

@@ -7,8 +7,7 @@ services:
             dockerfile: Dockerfile # Explicitly define the Dockerfile path
         container_name: homelab-dashboard
         restart: unless-stopped
-        ports:
-            - "3020:3020" # Map container port 3020 to host port 3020
+        # ports removed - using host networking instead
         environment:
             # Application-specific environment variables for configuration
             # NODE_ENV should almost always be 'production' in a deployed container
@@ -60,38 +59,30 @@ services:
 
         volumes:
             # Mount host /proc, /sys, and /dev for system monitoring.
-            # Using 'rw' (read-write) as required for AppArmor interaction (or other tools).
-            # WARNING: Mounting these host paths with rw, especially combined with 'privileged: true',
-            # significantly reduces container isolation and increases security risk.
-            - /proc:/proc:rw
-            - /sys:/sys:rw
-            - /dev:/dev:rw
+            # Using 'ro' (read-only) for better security
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /dev:/dev:ro
+            # Mount host root filesystem for disk monitoring (read-only)
+            - /:/hostfs:ro
             # Persistent volume for SQLite database data
             - homelab-data:/usr/src/app/server/data
 
-        networks:
-            - homelab-network # Connects to the homelab network
+        # Use host network for better network monitoring
+        network_mode: host
 
-        # Container Security Configuration (HIGH PRIVILEGES)
-        # These settings provide the container with extensive host access.
-        # Use with caution and only if absolutely necessary for application functionality.
-        privileged: true # Grants all capabilities to the container.
-        pid: host        # Allows container processes to see and interact with host PIDs.
-        ipc: host        # Shares IPC namespace with the host, allowing inter-process communication.
-        security_opt:
-            - "apparmor:unconfined" # Disables AppArmor enforcement for this container.
-            - "seccomp:unconfined"  # Disables seccomp filtering (allows all syscalls).
-            - "label:disable"       # Disables SELinux labeling if SELinux is active.
+        # Container Security Configuration (MINIMAL PRIVILEGES)
+        # Using minimal required capabilities instead of privileged mode
         cap_add:
-            - ALL # Adds all Linux capabilities to the container.
-        cap_drop: [] # Explicitly drops no capabilities (default for 'privileged: true').
+            - SYS_PTRACE       # Required for process monitoring
+            - DAC_READ_SEARCH  # Required for reading system files
+            - NET_RAW          # Required for network monitoring
+        
+        # Use host PID namespace for process monitoring
+        pid: host
 
 volumes:
     homelab-data:
         driver: local # Defines a local Docker volume for persistent data
 
-networks:
-    homelab-network:
-        name: homelab-network
-        driver: bridge
-        # Network for homelab dashboard communication
+# Remove networks section since we're using host networking

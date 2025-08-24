@@ -1,0 +1,79 @@
+version: "3.8"
+
+services:
+    homelab-dashboard:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: homelab-dashboard
+        restart: unless-stopped
+        
+        # Use host network for better system monitoring
+        network_mode: host
+        
+        environment:
+            # Application-specific environment variables for configuration
+            - NODE_ENV=production
+            - PORT=3020
+            - DB_PATH=/usr/src/app/server/data/homelab.db
+            
+            # Monitoring settings
+            - MONITOR_INTERVAL=5000
+            - CLEANUP_INTERVAL=24
+            - DEFAULT_TIMEOUT=10000
+            - MAX_HISTORY_ENTRIES=100
+            - WEBSITE_DOWN_THRESHOLD=3
+            - SYSTEM_UPDATE_INTERVAL=5000
+            - WEBSITE_CHECK_INTERVAL=*/1 * * * *
+            - WEBSITE_CHECK_TIMEOUT=5000
+            - MAX_HISTORY_LENGTH=60
+            - MAX_WEBSITE_HISTORY=1440
+
+            # Feature flags
+            - ENABLE_CPU_TEMPERATURE=true
+            - ENABLE_DISK_IO_MONITORING=true
+            - ENABLE_PROCESS_MONITORING=true
+            - ENABLE_EMAIL_NOTIFICATIONS=false
+
+            # Security settings
+            - ENABLE_HELMET=true
+            - TRUST_PROXY=false
+
+            # Logging settings
+            - LOG_LEVEL=info
+            - ENABLE_DEBUG_LOGGING=true
+
+            # Performance settings
+            - COMPRESSION_LEVEL=6
+            - REQUEST_TIMEOUT=10000
+            - MAX_CONNECTIONS=100
+
+            # System paths for Docker/Linux
+            - PROC_PATH=/host/proc
+            - SYS_PATH=/host/sys
+            - HOSTFS_PATH=/hostfs
+
+            # Dashboard display settings
+            - DASHBOARD_DOMAIN=localhost
+            - ENABLE_HTTPS_REDIRECT=false
+            - DEFAULT_WEBSITES=[]
+
+        volumes:
+            # Mount host system directories for monitoring
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /:/hostfs:ro
+            # Persistent volume for SQLite database data
+            - homelab-data:/usr/src/app/server/data
+
+        # Required capabilities for system monitoring
+        cap_add:
+            - SYS_PTRACE
+            - DAC_READ_SEARCH
+        
+        # Use host PID namespace for process monitoring
+        pid: host
+
+volumes:
+    homelab-data:
+        driver: local

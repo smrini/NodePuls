@@ -76,7 +76,7 @@ class SystemMonitor {
 				console.log("🔍 Fetching system info in Docker environment...");
 			}
 
-			const [cpu, memory, disk, network, osInfo, time, cpuInfo, temp] =
+			const [cpu, memory, disk, network, osInfo, time, cpuInfo, temp, allNetworkInterfacesRaw, blockDevicesData] =
 				await Promise.all([
 					si.currentLoad(),
 					si.mem(),
@@ -86,6 +86,8 @@ class SystemMonitor {
 					si.time(),
 					si.cpu(),
 					si.cpuTemperature(),
+					si.networkInterfaces(), // Get all network interfaces
+					si.blockDevices().catch(() => []) // Get disk labels, fallback to empty array
 				]);
 
 			// Try to get host memory data in Docker
@@ -99,10 +101,28 @@ class SystemMonitor {
 
 			// Try to get host network data in Docker
 			let networkInterfaces = network;
+			let allInterfacesInfo = allNetworkInterfacesRaw || [];
+			
 			if (this.isDockerEnvironment) {
 				const hostNetwork = await this.getHostNetworkInfo();
 				if (hostNetwork && hostNetwork.length > 0) {
 					networkInterfaces = hostNetwork;
+					// Use host network data instead of systeminformation for Docker
+					allInterfacesInfo = hostNetwork;
+				}
+			} else {
+				// For non-Docker environments, merge network stats with interface info
+				if (allInterfacesInfo && networkInterfaces) {
+					allInterfacesInfo = allInterfacesInfo.map(iface => {
+						const stats = networkInterfaces.find(stat => stat.iface === iface.iface);
+						return {
+							...iface,
+							rx_sec: stats?.rx_sec || 0,
+							tx_sec: stats?.tx_sec || 0,
+							type: this.determineInterfaceType(iface.iface || ''),
+							priority: this.getInterfacePriority(iface.iface || '')
+						};
+					});
 				}
 			}
 
@@ -177,6 +197,97 @@ class SystemMonitor {
 			// Handle network data more robustly
 			const networkData = this.getNetworkData(networkInterfaces);
 
+			// Prepare all disks for frontend dropdown
+			const allDisks = diskData ? diskData.map((disk, index) => {
+				// Get disk label from blockDevices data
+				let diskName = null;
+				
+				// Try to find matching block device by mount point
+				if (blockDevicesData && Array.isArray(blockDevicesData)) {
+					const matchingBlockDevice = blockDevicesData.find(blockDev => 
+						blockDev.mount === disk.mount || blockDev.identifier === disk.mount
+					);
+					
+					if (matchingBlockDevice && matchingBlockDevice.label && matchingBlockDevice.label.trim()) {
+						// Use the actual disk label (e.g., "P01", "ventoy", etc.)
+						diskName = matchingBlockDevice.label.trim();
+					}
+				}
+				
+				// Fallback to drive letter or mount point if no label found
+				if (!diskName) {
+					if (disk.mount === '/') {
+						diskName = 'Root';
+					} else if (disk.mount && disk.mount.match(/^[A-Z]:$/)) {
+						// Special handling for system drive (C:)
+						if (disk.mount === 'C:') {
+							diskName = 'System';
+						} else {
+							// Just use the drive letter for other Windows drives without labels
+							diskName = disk.mount;
+						}
+					} else if (disk.mount) {
+						// Use mount point as name (for Linux/Unix systems)
+						diskName = disk.mount.replace(/^\//, '').replace(/\//g, '/') || 'Root';
+					} else if (disk.fs) {
+						diskName = disk.fs;
+					} else {
+						diskName = `Disk ${index + 1}`;
+					}
+				}
+
+				return {
+					id: `disk-${index}`,
+					name: diskName,
+					mount: disk.mount || '/',
+					fs: disk.fs || 'unknown',
+					total: disk.size || 0,
+					used: disk.used || 0,
+					free: disk.available || disk.free || 0,
+					percentage: disk.use || 0,
+					type: disk.type || 'unknown'
+				};
+			}) : [{
+				id: 'disk-0',
+				name: 'Primary Disk',
+				mount: '/',
+				fs: 'fallback',
+				total: primaryDisk.size || 0,
+				used: primaryDisk.used || 0,
+				free: primaryDisk.available || primaryDisk.free || 0,
+				percentage: primaryDisk.use || 0,
+				type: 'unknown'
+			}];
+
+			// Prepare all network interfaces for frontend dropdown
+			const allNetworkInterfaces = allInterfacesInfo ? allInterfacesInfo
+				.filter(iface => {
+					// Filter out virtual interfaces for the dropdown
+					const ifaceName = iface.iface || '';
+					return !ifaceName.includes('lo') && 
+						   !ifaceName.includes('docker') && 
+						   !ifaceName.includes('veth') &&
+						   !ifaceName.includes('br-') &&
+						   !ifaceName.includes('tailscale');
+				})
+				.map((iface, index) => ({
+					id: `net-${index}`,
+					name: this.getNetworkDisplayName(iface.iface || `Interface ${index + 1}`, iface.type || 'Unknown'),
+					iface: iface.iface || `eth${index}`,
+					type: iface.type || 'Unknown',
+					rx_sec: iface.rx_sec || 0,
+					tx_sec: iface.tx_sec || 0,
+					priority: iface.priority || 0
+				})) : [{
+				id: 'net-0',
+				name: 'Primary Interface',
+				iface: 'eth0',
+				type: 'Ethernet',
+				rx_sec: networkData.rx_sec || 0,
+				tx_sec: networkData.tx_sec || 0,
+				priority: 5
+			}];
+
 			const systemData = {
 				timestamp: Date.now(),
 				cpu: {
@@ -203,6 +314,9 @@ class SystemMonitor {
 					percentage: primaryDisk.use || 0,
 				},
 				network: networkData,
+				// Include all options for dropdowns
+				disks: allDisks,
+				networkInterfaces: allNetworkInterfaces,
 				uptime: time.uptime || 0,
 			};
 
@@ -524,18 +638,16 @@ class SystemMonitor {
 							type = 'Other';
 						}
 						
-						// Only include interfaces that have had some traffic (not completely unused)
-						if (rxBytes > 0 || txBytes > 0) {
-							interfaces.push({
-								iface: ifaceName,
-								rx_bytes: rxBytes,
-								tx_bytes: txBytes,
-								rx_sec: 0, // Will be calculated from previous reading
-								tx_sec: 0, // Will be calculated from previous reading
-								priority: priority,
-								type: type
-							});
-						}
+						// Include all physical interfaces (not just active ones)
+						interfaces.push({
+							iface: ifaceName,
+							rx_bytes: rxBytes,
+							tx_bytes: txBytes,
+							rx_sec: 0, // Will be calculated from previous reading
+							tx_sec: 0, // Will be calculated from previous reading
+							priority: priority,
+							type: type
+						});
 					}
 				}
 			}
@@ -965,6 +1077,51 @@ class SystemMonitor {
 		}
 		
 		return null;
+	}
+
+	determineInterfaceType(interfaceName) {
+		const name = interfaceName.toLowerCase();
+		if (name.includes('wl') || name.includes('wlan') || name.includes('wifi')) {
+			return 'WiFi';
+		} else if (name.includes('en') || name.includes('eth')) {
+			return 'Ethernet';
+		} else if (name.includes('ppp')) {
+			return 'PPP';
+		} else if (name.includes('tun') || name.includes('tap')) {
+			return 'VPN/Tunnel';
+		} else {
+			return 'Other';
+		}
+	}
+
+	getInterfacePriority(interfaceName) {
+		const name = interfaceName.toLowerCase();
+		if (name.includes('wl') || name.includes('wlan') || name.includes('wifi')) {
+			return 10; // Highest priority for WiFi
+		} else if (name.includes('en') || name.includes('eth')) {
+			return 5; // Medium priority for Ethernet
+		} else {
+			return 1; // Low priority for other interfaces
+		}
+	}
+
+	getNetworkDisplayName(interfaceName, type) {
+		// Generate user-friendly names for network interfaces
+		const name = interfaceName.toLowerCase();
+		
+		if (name.includes('wl') || name.includes('wlan') || name.includes('wifi')) {
+			return `WiFi (${interfaceName})`;
+		} else if (name.includes('en') || name.includes('eth')) {
+			return `Ethernet (${interfaceName})`;
+		} else if (name.includes('lo')) {
+			return `Loopback (${interfaceName})`;
+		} else if (name.includes('docker') || name.includes('br-') || name.includes('veth')) {
+			return `Docker (${interfaceName})`;
+		} else if (name.includes('tun') || name.includes('tap')) {
+			return `VPN/Tunnel (${interfaceName})`;
+		} else {
+			return `${type} (${interfaceName})`;
+		}
 	}
 }
 

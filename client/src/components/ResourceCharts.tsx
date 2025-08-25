@@ -9,13 +9,14 @@ import {
 	Legend,
 	ResponsiveContainer,
 } from "recharts";
-import { ChartDataPoint } from "../types";
+import { ChartDataPoint, NetworkInterface } from "../types";
 
 interface ResourceChartsProps {
 	data: ChartDataPoint[];
+	selectedNetworkInterface?: NetworkInterface | null;
 }
 
-const ResourceCharts: React.FC<ResourceChartsProps> = ({ data }) => {
+const ResourceCharts: React.FC<ResourceChartsProps> = ({ data, selectedNetworkInterface }) => {
 	if (data.length === 0) {
 		return (
 			<div className="resource-charts loading">
@@ -75,7 +76,14 @@ const ResourceCharts: React.FC<ResourceChartsProps> = ({ data }) => {
 			</div>
 
 			<div className="chart-container">
-				<h3>Network Activity</h3>
+				<h3>
+					Network Activity
+					{selectedNetworkInterface && (
+						<span style={{ fontSize: '0.8em', fontWeight: 'normal', color: '#9CA3AF', marginLeft: '8px' }}>
+							({selectedNetworkInterface.name})
+						</span>
+					)}
+				</h3>
 				<ResponsiveContainer width="100%" height={215}>
 					<LineChart data={data}>
 						<CartesianGrid strokeDasharray="3 3" stroke="#374151" />

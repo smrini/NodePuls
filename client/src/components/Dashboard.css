@@ -21,7 +21,6 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	max-width: 1400px;
 	margin: 0 auto;
 }
 
@@ -169,7 +168,6 @@
 
 .stat-dropdown {
 	position: relative;
-	margin-left: auto;
 }
 
 /* Ensure dropdown appears above all other content */
@@ -519,34 +517,6 @@
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-}
-
-.uptime-badge {
-	font-size: 0.75rem;
-	font-weight: 600;
-	padding: 0.25rem 0.5rem;
-	border-radius: 12px;
-	white-space: nowrap;
-}
-
-.uptime-badge.excellent {
-	background: rgba(34, 197, 94, 0.15);
-	color: #22c55e;
-}
-
-.uptime-badge.good {
-	background: rgba(34, 197, 94, 0.1);
-	color: #4ade80;
-}
-
-.uptime-badge.warning {
-	background: rgba(245, 158, 11, 0.15);
-	color: #f59e0b;
-}
-
-.uptime-badge.poor {
-	background: rgba(239, 68, 68, 0.15);
-	color: #ef4444;
 }
 
 .expand-btn {
@@ -1088,18 +1058,6 @@
 	position: relative;
 }
 
-.stat-header:has(.stat-dropdown) > div:first-child span::after {
-	content: '';
-	position: absolute;
-	top: -2px;
-	right: -8px;
-	width: 4px;
-	height: 4px;
-	background: #3b82f6;
-	border-radius: 50%;
-	opacity: 0.6;
-}
-
 /* Enhance dropdown visual feedback */
 .dropdown-toggle:focus {
 	outline: 2px solid #3b82f6;
@@ -1138,7 +1096,6 @@
 .stat-content {
 	display: flex;
 	flex-direction: column;
-	gap: 1rem;
 }
 
 .stat-usage-row {
@@ -1180,4 +1137,84 @@
 
 .percentage-large.critical {
 	color: #ef4444;
+}
+
+/* Edit Website Modal Styling */
+.edit-website-modal {
+	width: 500px;
+	max-width: 90vw;
+}
+
+.edit-website-modal .modal-body {
+	padding: 2rem;
+}
+
+.form-group {
+	margin-bottom: 1.5rem;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 0.5rem;
+	color: #e2e8f0;
+	font-weight: 500;
+	font-size: 0.875rem;
+}
+
+.form-group input {
+	width: 100%;
+	background: #374151;
+	border: 1px solid #4b5563;
+	border-radius: 6px;
+	padding: 0.75rem;
+	color: #f8fafc;
+	font-size: 0.875rem;
+	transition: border-color 0.2s ease;
+}
+
+.form-group input:focus {
+	outline: none;
+	border-color: #3b82f6;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input:hover {
+	border-color: #6b7280;
+}
+
+.modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	margin-top: 2rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid #374151;
+}
+
+.modal-actions .action-btn {
+	min-width: 120px;
+	justify-content: center;
+	padding: 0.75rem 1.5rem;
+	font-size: 0.875rem;
+}
+
+/* Responsive design for edit modal */
+@media (max-width: 768px) {
+	.edit-website-modal {
+		width: 95vw;
+		margin: 1rem;
+	}
+	
+	.edit-website-modal .modal-body {
+		padding: 1.5rem;
+	}
+	
+	.modal-actions {
+		flex-direction: column;
+	}
+	
+	.modal-actions .action-btn {
+		min-width: auto;
+		width: 100%;
+	}
 }

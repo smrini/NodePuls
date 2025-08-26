@@ -82,15 +82,16 @@ const Dashboard: React.FC<DashboardProps> = ({
 			<header className="dashboard-header">
 				<div className="header-content">
 					<h1>Homelab Dashboard</h1>
-					<ConnectionStatus isConnected={isConnected} />
-				</div>
-				{systemData && (
+					{systemData && (
 					<div className="uptime-info">
 						<span>
 							System Uptime: {formatUptime(systemData.uptime)}
 						</span>
 					</div>
 				)}
+					<ConnectionStatus isConnected={isConnected} />
+				</div>
+				
 			</header>
 
 			<main className="dashboard-main">

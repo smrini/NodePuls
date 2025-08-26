@@ -214,31 +214,57 @@ class SystemMonitor {
 					}
 				}
 				
-				// Fallback to drive letter or mount point if no label found
+				// Improved fallback naming based on mount point and device
 				if (!diskName) {
 					if (disk.mount === '/') {
-						diskName = 'Root';
+						diskName = 'System Root';
+					} else if (disk.mount === '/home') {
+						diskName = 'Home Directory';
+					} else if (disk.mount === '/var') {
+						diskName = 'System Data';
+					} else if (disk.mount === '/boot' || disk.mount === '/boot/efi') {
+						diskName = 'Boot Partition';
+					} else if (disk.mount === '/data') {
+						diskName = 'Data Drive';
 					} else if (disk.mount && disk.mount.match(/^[A-Z]:$/)) {
-						// Special handling for system drive (C:)
+						// Windows drive letters
 						if (disk.mount === 'C:') {
-							diskName = 'System';
+							diskName = 'System Drive';
 						} else {
-							// Just use the drive letter for other Windows drives without labels
-							diskName = disk.mount;
+							diskName = `Drive ${disk.mount}`;
 						}
 					} else if (disk.mount) {
-						// Use mount point as name (for Linux/Unix systems)
-						diskName = disk.mount.replace(/^\//, '').replace(/\//g, '/') || 'Root';
+						// Use mount point as name, clean it up
+						const cleanMount = disk.mount.replace(/^\//, '').replace(/\//g, '/') || 'Root';
+						diskName = cleanMount.charAt(0).toUpperCase() + cleanMount.slice(1);
 					} else if (disk.fs) {
-						diskName = disk.fs;
+						// Use device name with better formatting
+						if (disk.fs.includes('nvme')) {
+							diskName = 'NVMe SSD';
+						} else if (disk.fs.includes('sda')) {
+							diskName = 'Primary Drive';
+						} else if (disk.fs.includes('sdb')) {
+							diskName = 'Secondary Drive';
+						} else {
+							diskName = disk.fs.replace('/dev/', '').toUpperCase();
+						}
 					} else {
 						diskName = `Disk ${index + 1}`;
 					}
 				}
 
+				// Add device info and size to the name for better identification
+				let displayName = diskName;
+				if (disk.fs && !diskName.includes(disk.fs.replace('/dev/', ''))) {
+					const deviceShort = disk.fs.replace('/dev/', '');
+					// Add size info to make disks more distinguishable
+					const totalSize = this.formatBytes(disk.size || 0);
+					displayName = `${diskName} (${deviceShort} - ${totalSize})`;
+				}
+
 				return {
 					id: `disk-${index}`,
-					name: diskName,
+					name: displayName,
 					mount: disk.mount || '/',
 					fs: disk.fs || 'unknown',
 					total: disk.size || 0,
@@ -733,6 +759,15 @@ class SystemMonitor {
 			const mounts = fs.readFileSync(mountsPath, 'utf8');
 			const lines = mounts.split('\n');
 			
+			console.log(`🔍 Found ${lines.length} mount entries in ${mountsPath}`);
+			
+			// Debug: Show first few non-empty mount lines for troubleshooting
+			const sampleMounts = lines.filter(line => line.trim().length > 0).slice(0, 10);
+			console.log(`🔍 Sample mount entries:`, sampleMounts.map(line => {
+				const parts = line.trim().split(/\s+/);
+				return parts.length >= 3 ? `${parts[0]} -> ${parts[1]} (${parts[2]})` : line.trim();
+			}));
+			
 			const filesystems = [];
 			for (const line of lines) {
 				const parts = line.trim().split(/\s+/);
@@ -741,14 +776,37 @@ class SystemMonitor {
 					const mountPoint = parts[1];
 					const fsType = parts[2];
 					
+					console.log(`🔍 Examining mount: ${device} -> ${mountPoint} (${fsType})`);
+					
 					// Filter for real disk filesystems (exclude virtual/special filesystems)
 					if (this.isRealFilesystem(device, mountPoint, fsType)) {
 						try {
-							// Get disk usage statistics using statvfs on the /hostfs mount
-							const hostfsMountPoint = path.join('/hostfs', mountPoint === '/' ? '' : mountPoint);
+							// Fix the path construction - map host mount points correctly
+							let hostfsMountPoint;
+							let realMountPoint;
+							
+							// Check if this mount is already under /hostfs (Docker bind mount)
+							if (mountPoint.startsWith('/hostfs')) {
+								// This is already a hostfs mount path, use it directly
+								hostfsMountPoint = mountPoint;
+								// Extract the real mount point (remove /hostfs prefix)
+								realMountPoint = mountPoint.replace('/hostfs', '') || '/';
+								
+								console.log(`🔍 Checking Docker bind mount: ${device} at container path ${mountPoint} (real: ${realMountPoint})`);
+							} else {
+								// This is a host mount point, map it to the hostfs container path
+								realMountPoint = mountPoint;
+								if (mountPoint === '/') {
+									hostfsMountPoint = '/hostfs';
+								} else {
+									hostfsMountPoint = '/hostfs' + mountPoint;
+								}
+								
+								console.log(`🔍 Checking host filesystem: ${device} at ${mountPoint} -> container path ${hostfsMountPoint}`);
+							}
 							
 							// Use a more robust method to get disk stats
-							const stats = await this.getFilesystemStats(hostfsMountPoint, mountPoint);
+							const stats = await this.getFilesystemStats(hostfsMountPoint, realMountPoint);
 							if (stats) {
 								filesystems.push({
 									fs: device,
@@ -757,10 +815,10 @@ class SystemMonitor {
 									used: stats.used,
 									available: stats.free,
 									use: stats.percentage,
-									mount: mountPoint
+									mount: realMountPoint // Always use the real mount point for display
 								});
 								
-								console.log(`💾 Host disk: ${mountPoint} (${device}) - ${this.formatBytes(stats.used)}/${this.formatBytes(stats.total)} (${stats.percentage.toFixed(1)}%)`);
+								console.log(`💾 Host disk: ${realMountPoint} (${device}) - ${this.formatBytes(stats.used)}/${this.formatBytes(stats.total)} (${stats.percentage.toFixed(1)}%)`);
 							}
 						} catch (error) {
 							// Skip filesystems we can't read
@@ -947,20 +1005,27 @@ class SystemMonitor {
 	isRealFilesystem(device, mountPoint, fsType) {
 		// Filter out virtual/special filesystems
 		const virtualFs = ['proc', 'sysfs', 'devtmpfs', 'tmpfs', 'devpts', 'cgroup', 'cgroup2', 'pstore', 'bpf', 'tracefs', 'debugfs', 'mqueue', 'hugetlbfs', 'fusectl', 'configfs', 'selinuxfs', 'overlay'];
-		const virtualMounts = ['/dev', '/proc', '/sys', '/run', '/tmp'];
 		
 		// Skip virtual filesystems
 		if (virtualFs.includes(fsType)) {
 			return false;
 		}
 		
-		// Skip virtual mount points
-		if (virtualMounts.some(vm => mountPoint.startsWith(vm))) {
+		// Skip devices that don't look like real disks
+		if (device.startsWith('/dev/loop') || device.startsWith('/dev/ram') || !device.startsWith('/dev/')) {
 			return false;
 		}
 		
-		// Skip devices that don't look like real disks
-		if (device.startsWith('/dev/loop') || device.startsWith('/dev/ram') || !device.startsWith('/dev/')) {
+		// Skip Docker-specific bind mounts and container-specific paths
+		if (mountPoint.startsWith('/etc/') || 
+			mountPoint.startsWith('/usr/src/app') || 
+			mountPoint.startsWith('/var/lib/docker') ||
+			mountPoint.includes('docker') ||
+			mountPoint.includes('container') ||
+			mountPoint.startsWith('/run/') ||
+			mountPoint.startsWith('/dev/') ||
+			mountPoint.startsWith('/proc/') ||
+			mountPoint.startsWith('/sys/')) {
 			return false;
 		}
 		
@@ -970,8 +1035,9 @@ class SystemMonitor {
 			return true;
 		}
 		
-		// Include root and common mount points
-		if (mountPoint === '/' || mountPoint === '/home' || mountPoint === '/var' || mountPoint === '/usr') {
+		// Include real mount points (common Linux filesystem hierarchy)
+		const realMounts = ['/', '/home', '/var', '/usr', '/opt', '/srv', '/data', '/mnt', '/media', '/boot'];
+		if (realMounts.some(rm => mountPoint === rm || mountPoint.startsWith(rm + '/'))) {
 			return true;
 		}
 		

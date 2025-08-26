@@ -21,14 +21,18 @@ class UptimeMonitor {
 			this.websites.clear();
 			websites.forEach((website) => {
 				try {
-					website.history = website.history
-						? JSON.parse(website.history)
-						: [];
+					// Handle empty or null history gracefully
+					if (website.history && website.history.trim() !== '') {
+						website.history = JSON.parse(website.history);
+					} else {
+						website.history = [];
+					}
 				} catch (e) {
 					console.error(
 						`Error parsing history for ${website.name}:`,
-						e
+						e.message
 					);
+					console.log(`Raw history data: "${website.history}"`);
 					website.history = [];
 				}
 				this.websites.set(website.id, website);

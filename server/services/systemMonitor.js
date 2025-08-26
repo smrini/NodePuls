@@ -16,7 +16,7 @@ class SystemMonitor {
 		
 		// Configure systeminformation for Docker if needed
 		if (this.isDockerEnvironment) {
-			console.log("🐳 Docker environment detected, configuring system monitoring...");
+			// Docker environment detected
 			this.configureForDocker();
 		}
 	}
@@ -46,23 +46,23 @@ class SystemMonitor {
 			
 			// Try host-mounted paths first (preferred for Docker)
 			if (fs.existsSync(hostProcPath) && fs.existsSync(hostSysPath)) {
-				console.log("✅ Host-mounted /proc and /sys detected at /host/*");
+				// Host-mounted paths detected
 				this.hostProcPath = hostProcPath;
 				this.hostSysPath = hostSysPath;
 				configuredPaths = true;
 			} 
 			// Fallback to direct mounted paths (host networking)
 			else if (fs.existsSync(procPath) && fs.existsSync(sysPath)) {
-				console.log("✅ Direct-mounted /proc and /sys detected (host networking)");
+				// Direct-mounted paths detected
 				this.hostProcPath = procPath;
 				this.hostSysPath = sysPath;
 				configuredPaths = true;
 			}
 			
 			if (configuredPaths) {
-				console.log("🔧 Docker environment configured for host monitoring");
+				// Docker environment configured
 			} else {
-				console.log("⚠️ Host system paths not found, using container data");
+				// Using container data
 			}
 		} catch (error) {
 			console.error("❌ Error configuring Docker environment:", error);
@@ -71,9 +71,9 @@ class SystemMonitor {
 
 	async getSystemInfo() {
 		try {
-			// Add debug logging for Docker environments
+			// Essential logging for Docker environments only
 			if (this.isDockerEnvironment) {
-				console.log("🔍 Fetching system info in Docker environment...");
+				// Fetching system info...
 			}
 
 			const [cpu, memory, disk, network, osInfo, time, cpuInfo, temp, allNetworkInterfacesRaw, blockDevicesData] =
@@ -129,22 +129,22 @@ class SystemMonitor {
 			// Try to get host disk data in Docker
 			let diskData = disk;
 			if (this.isDockerEnvironment) {
-				console.log("🔍 Attempting to get host disk info...");
+				// Attempting to get host disk info...
 				try {
 					const hostDisk = await this.getHostDiskInfo();
-					console.log(`🔍 Host disk result:`, hostDisk ? `${hostDisk.length} filesystems` : 'null');
+					// Host disk result logged
 					if (hostDisk && hostDisk.length > 0) {
 						diskData = hostDisk;
-						console.log("✅ Using host disk data");
+						// Using host disk data
 					} else {
-						console.log("⚠️ No host disk data available, forcing fallback...");
+						// No host disk data available, forcing fallback...
 						// Force the fallback method to always return something
 						const fallbackDisk = await this.getHostDiskInfoAlternative();
 						if (fallbackDisk && fallbackDisk.length > 0) {
 							diskData = fallbackDisk;
-							console.log("✅ Using fallback disk data");
+							// Using fallback disk data
 						} else {
-							console.log("⚠️ Even fallback failed, using hardcoded disk data");
+							// Even fallback failed, using hardcoded disk data
 							// Last resort: hardcoded disk data
 							diskData = [{
 								fs: 'container-fallback',
@@ -155,7 +155,7 @@ class SystemMonitor {
 								use: 40, // 40%
 								mount: '/'
 							}];
-							console.log("💾 Using hardcoded container fallback disk data");
+							// Using hardcoded container fallback disk data
 						}
 					}
 				} catch (error) {
@@ -170,25 +170,13 @@ class SystemMonitor {
 						use: 43.75, // 43.75%
 						mount: '/'
 					}];
-					console.log("💾 Using error fallback disk data");
+					// Using error fallback disk data
 				}
 			}
 
 			// Debug: Log raw data in Docker environment
 			if (this.isDockerEnvironment) {
-				console.log("📊 Raw system data:");
-				console.log(`  CPU Load: ${cpu.currentLoad}%`);
-				console.log(`  Memory: ${this.formatBytes(memoryData.used)}/${this.formatBytes(memoryData.total)}`);
-				console.log(`  Disk info: ${diskData ? diskData.length : 0} filesystems detected`);
-				if (diskData && diskData.length > 0) {
-					console.log(`  Raw disk data:`, diskData.map(d => ({ mount: d.mount, fs: d.fs, size: this.formatBytes(d.size || 0) })));
-				}
-				console.log(`  Network interfaces: ${networkInterfaces.length}`);
-				if (networkInterfaces.length > 0) {
-					const firstIface = networkInterfaces[0];
-					console.log(`  Network RX: ${firstIface.rx_sec || 0} bytes/sec`);
-					console.log(`  Network TX: ${firstIface.tx_sec || 0} bytes/sec`);
-				}
+				// System data collected successfully
 			}
 
 			// Get primary disk using original automatic detection
@@ -199,6 +187,8 @@ class SystemMonitor {
 
 			// Prepare all disks for frontend dropdown
 			const allDisks = diskData ? diskData.map((disk, index) => {
+				// Processing disk
+				
 				// Get disk label from blockDevices data
 				let diskName = null;
 				
@@ -211,11 +201,13 @@ class SystemMonitor {
 					if (matchingBlockDevice && matchingBlockDevice.label && matchingBlockDevice.label.trim()) {
 						// Use the actual disk label (e.g., "P01", "ventoy", etc.)
 						diskName = matchingBlockDevice.label.trim();
+						// Found block device label
 					}
 				}
 				
 				// Improved fallback naming based on mount point and device
 				if (!diskName) {
+					// No block device label found, using fallback naming...
 					if (disk.mount === '/') {
 						diskName = 'System Root';
 					} else if (disk.mount === '/home') {
@@ -227,11 +219,21 @@ class SystemMonitor {
 					} else if (disk.mount === '/data') {
 						diskName = 'Data Drive';
 					} else if (disk.mount && disk.mount.match(/^[A-Z]:$/)) {
-						// Windows drive letters
+						// Windows drive letters - use descriptive names without showing the drive letter
 						if (disk.mount === 'C:') {
 							diskName = 'System Drive';
+						} else if (disk.mount === 'D:') {
+							diskName = 'Data Drive';
+						} else if (disk.mount === 'E:') {
+							diskName = 'External Drive';
+						} else if (disk.mount === 'F:') {
+							diskName = 'Storage Drive';
+						} else if (disk.mount === 'G:') {
+							diskName = 'Additional Drive';
 						} else {
-							diskName = `Drive ${disk.mount}`;
+							// For other drives, use sequential numbering without letters
+							const driveNum = disk.mount.charCodeAt(0) - 67; // C=0, D=1, etc.
+							diskName = `Secondary Drive ${driveNum}`;
 						}
 					} else if (disk.mount) {
 						// Use mount point as name, clean it up
@@ -251,20 +253,20 @@ class SystemMonitor {
 					} else {
 						diskName = `Disk ${index + 1}`;
 					}
+					// Final disk name determined
 				}
 
-				// Add device info and size to the name for better identification
-				let displayName = diskName;
-				if (disk.fs && !diskName.includes(disk.fs.replace('/dev/', ''))) {
-					const deviceShort = disk.fs.replace('/dev/', '');
-					// Add size info to make disks more distinguishable
-					const totalSize = this.formatBytes(disk.size || 0);
-					displayName = `${diskName} (${deviceShort} - ${totalSize})`;
-				}
+				// Add size information for dropdown display
+				const totalSize = this.formatBytes(disk.size || 0);
+				let dropdownName;
+				
+				// For all drives: show only clean descriptive names in dropdown (no drive letters, no sizes)
+				dropdownName = diskName;
 
 				return {
 					id: `disk-${index}`,
-					name: displayName,
+					name: dropdownName,
+					displayName: diskName, // Clean name for card display
 					mount: disk.mount || '/',
 					fs: disk.fs || 'unknown',
 					total: disk.size || 0,
@@ -276,6 +278,7 @@ class SystemMonitor {
 			}) : [{
 				id: 'disk-0',
 				name: 'Primary Disk',
+				displayName: 'Primary Disk', // Clean name for card display
 				mount: '/',
 				fs: 'fallback',
 				total: primaryDisk.size || 0,
@@ -284,6 +287,11 @@ class SystemMonitor {
 				percentage: primaryDisk.use || 0,
 				type: 'unknown'
 			}];
+
+			// Debug: Log the final disk data being sent to frontend
+			if (this.isDockerEnvironment && allDisks.length > 0) {
+				// Final disk data prepared
+			}
 
 			// Prepare all network interfaces for frontend dropdown
 			const allNetworkInterfaces = allInterfacesInfo ? allInterfacesInfo
@@ -294,7 +302,10 @@ class SystemMonitor {
 						   !ifaceName.includes('docker') && 
 						   !ifaceName.includes('veth') &&
 						   !ifaceName.includes('br-') &&
-						   !ifaceName.includes('tailscale');
+						   !ifaceName.includes('Loopback') &&
+						   !ifaceName.includes('Bluetooth') &&
+						   !ifaceName.includes('tailscale') &&
+						   !ifaceName.includes('Tailscale');
 				})
 				.map((iface, index) => ({
 					id: `net-${index}`,
@@ -303,8 +314,24 @@ class SystemMonitor {
 					type: iface.type || 'Unknown',
 					rx_sec: iface.rx_sec || 0,
 					tx_sec: iface.tx_sec || 0,
-					priority: iface.priority || 0
-				})) : [{
+					priority: iface.priority || 0,
+					totalTraffic: (iface.rx_sec || 0) + (iface.tx_sec || 0)
+				}))
+				.sort((a, b) => {
+					// Sort by: 1) interfaces with traffic first, 2) total traffic amount, 3) interface priority
+					const aHasTraffic = a.totalTraffic > 0 ? 1 : 0;
+					const bHasTraffic = b.totalTraffic > 0 ? 1 : 0;
+					
+					if (aHasTraffic !== bHasTraffic) {
+						return bHasTraffic - aHasTraffic; // Interfaces with traffic first
+					}
+					
+					if (a.totalTraffic !== b.totalTraffic) {
+						return b.totalTraffic - a.totalTraffic; // Higher traffic first
+					}
+					
+					return b.priority - a.priority; // Higher priority first (WiFi > Ethernet > Others)
+				}) : [{
 				id: 'net-0',
 				name: 'Primary Interface',
 				iface: 'eth0',
@@ -440,10 +467,7 @@ class SystemMonitor {
 	}
 
 	getPrimaryDisk(disks) {
-		console.log("🔍 Selecting primary disk from:", disks ? disks.length : 0, "available disks");
-		if (disks && disks.length > 0) {
-			console.log("🔍 Available disks:", disks.map(d => ({ mount: d.mount, fs: d.fs, size: this.formatBytes(d.size || 0) })));
-		}
+		// Selecting primary disk
 
 		// Get primary disk (Windows uses C:, Linux uses /)
 		const primaryDisk = disks.find(
@@ -460,14 +484,7 @@ class SystemMonitor {
 				use: 0,
 			};
 
-		console.log("✅ Selected primary disk:", { 
-			mount: primaryDisk.mount, 
-			fs: primaryDisk.fs, 
-			size: this.formatBytes(primaryDisk.size || 0),
-			used: this.formatBytes(primaryDisk.used || 0),
-			free: this.formatBytes(primaryDisk.available || primaryDisk.free || 0),
-			percentage: primaryDisk.use || 0
-		});
+		// Primary disk selected
 
 		return primaryDisk;
 	}
@@ -500,7 +517,7 @@ class SystemMonitor {
 				// Look for interface with actual traffic
 				if (rxSec > 0 || txSec > 0) {
 					activeInterface = iface;
-					console.log(`🌐 Active interface found: ${iface.iface} (↓${this.formatBytes(rxSec)}/s ↑${this.formatBytes(txSec)}/s)`);
+					// Active interface found
 					break;
 				}
 			}
@@ -527,7 +544,7 @@ class SystemMonitor {
 		);
 
 		if (firstValidInterface) {
-			console.log(`📡 Using interface: ${firstValidInterface.iface} (no active traffic detected)`);
+			// Using interface (no active traffic detected)
 			return {
 				rx_sec: firstValidInterface.rx_sec || 0,
 				tx_sec: firstValidInterface.tx_sec || 0
@@ -600,7 +617,7 @@ class SystemMonitor {
 				const available = memData.MemAvailable || memData.MemFree || 0;
 				const used = total - available;
 				
-				console.log(`🧠 Host memory: ${this.formatBytes(used)}/${this.formatBytes(total)} (${((used/total)*100).toFixed(1)}%)`);
+				// Host memory detected
 				
 				return {
 					total,
@@ -703,24 +720,7 @@ class SystemMonitor {
 			}));
 			this.lastNetworkTime = now;
 			
-			if (interfaces.length > 0) {
-				console.log(`🌐 Host network interfaces found: ${interfaces.length}`);
-				
-				// List all detected interfaces
-				interfaces.forEach((iface, index) => {
-					const totalTraffic = this.formatBytes(iface.rx_bytes + iface.tx_bytes);
-					console.log(`  ${index + 1}. ${iface.iface} (${iface.type}): Total traffic: ${totalTraffic}`);
-				});
-				
-				const primaryInterface = interfaces[0];
-				console.log(`🏆 Primary interface: ${primaryInterface.iface} (${primaryInterface.type})`);
-				
-				if (primaryInterface.rx_sec > 0 || primaryInterface.tx_sec > 0) {
-					console.log(`  Current traffic: ↓${this.formatBytes(primaryInterface.rx_sec)}/s ↑${this.formatBytes(primaryInterface.tx_sec)}/s`);
-				}
-			} else {
-				console.log("⚠️ No active network interfaces found on host");
-			}
+			// Host network interfaces detected
 			
 			return interfaces;
 		} catch (error) {
@@ -735,38 +735,31 @@ class SystemMonitor {
 			return null;
 		}
 
-		console.log("🔍 Starting host disk detection in Docker environment...");
+		// Starting host disk detection...
 
 		try {
 			// First check if we have access to /hostfs
 			const hostfsPath = '/hostfs';
-			console.log(`🔍 Checking for /hostfs mount: ${fs.existsSync(hostfsPath) ? 'EXISTS' : 'NOT FOUND'}`);
+			// Checking for /hostfs mount
 			
 			if (!fs.existsSync(hostfsPath)) {
-				console.log("⚠️ /hostfs mount not found, trying alternative disk detection...");
+				// /hostfs mount not found, trying alternative disk detection...
 				return await this.getHostDiskInfoAlternative();
 			}
 
 			// Try to read mounted filesystems from /proc/mounts via host mount
 			const mountsPath = path.join(this.hostProcPath || '/host/proc', 'mounts');
-			console.log(`🔍 Checking for host mounts file: ${mountsPath} - ${fs.existsSync(mountsPath) ? 'EXISTS' : 'NOT FOUND'}`);
+			// Checking for host mounts file
 			
 			if (!fs.existsSync(mountsPath)) {
-				console.log("⚠️ Host /proc/mounts not accessible, using /hostfs statvfs...");
+				// Host /proc/mounts not accessible, using /hostfs statvfs...
 				return await this.getHostDiskInfoFromHostfs();
 			}
 
 			const mounts = fs.readFileSync(mountsPath, 'utf8');
 			const lines = mounts.split('\n');
 			
-			console.log(`🔍 Found ${lines.length} mount entries in ${mountsPath}`);
-			
-			// Debug: Show first few non-empty mount lines for troubleshooting
-			const sampleMounts = lines.filter(line => line.trim().length > 0).slice(0, 10);
-			console.log(`🔍 Sample mount entries:`, sampleMounts.map(line => {
-				const parts = line.trim().split(/\s+/);
-				return parts.length >= 3 ? `${parts[0]} -> ${parts[1]} (${parts[2]})` : line.trim();
-			}));
+			// Processing mount entries
 			
 			const filesystems = [];
 			for (const line of lines) {
@@ -776,7 +769,7 @@ class SystemMonitor {
 					const mountPoint = parts[1];
 					const fsType = parts[2];
 					
-					console.log(`🔍 Examining mount: ${device} -> ${mountPoint} (${fsType})`);
+					// Examining mount
 					
 					// Filter for real disk filesystems (exclude virtual/special filesystems)
 					if (this.isRealFilesystem(device, mountPoint, fsType)) {
@@ -792,7 +785,7 @@ class SystemMonitor {
 								// Extract the real mount point (remove /hostfs prefix)
 								realMountPoint = mountPoint.replace('/hostfs', '') || '/';
 								
-								console.log(`🔍 Checking Docker bind mount: ${device} at container path ${mountPoint} (real: ${realMountPoint})`);
+								// Checking Docker bind mount
 							} else {
 								// This is a host mount point, map it to the hostfs container path
 								realMountPoint = mountPoint;
@@ -802,7 +795,7 @@ class SystemMonitor {
 									hostfsMountPoint = '/hostfs' + mountPoint;
 								}
 								
-								console.log(`🔍 Checking host filesystem: ${device} at ${mountPoint} -> container path ${hostfsMountPoint}`);
+								// Checking host filesystem
 							}
 							
 							// Use a more robust method to get disk stats
@@ -818,21 +811,21 @@ class SystemMonitor {
 									mount: realMountPoint // Always use the real mount point for display
 								});
 								
-								console.log(`💾 Host disk: ${realMountPoint} (${device}) - ${this.formatBytes(stats.used)}/${this.formatBytes(stats.total)} (${stats.percentage.toFixed(1)}%)`);
+								// Host disk added
 							}
 						} catch (error) {
 							// Skip filesystems we can't read
-							console.log(`⚠️ Cannot read filesystem stats for ${mountPoint}: ${error.message}`);
+							// Cannot read filesystem stats
 						}
 					}
 				}
 			}
 			
 			if (filesystems.length > 0) {
-				console.log(`💾 Host disk detection successful: ${filesystems.length} filesystems found`);
+				// Host disk detection successful
 				return filesystems;
 			} else {
-				console.log("⚠️ No accessible host filesystems found, trying fallback method...");
+				// No accessible host filesystems found, trying fallback method...
 				return await this.getHostDiskInfoFromHostfs();
 			}
 		} catch (error) {
@@ -842,15 +835,15 @@ class SystemMonitor {
 	}
 
 	async getHostDiskInfoFromHostfs() {
-		console.log("🔍 Using hostfs fallback method for disk detection...");
+		// Using hostfs fallback method for disk detection...
 		try {
 			// First, try just accessing /hostfs to see if it's mounted
-			console.log("🔍 Attempting to list /hostfs contents...");
+			// Attempting to list /hostfs contents...
 			try {
 				const hostfsContents = fs.readdirSync('/hostfs').slice(0, 5); // Just get first 5 items
-				console.log("✅ /hostfs accessible, contents sample:", hostfsContents);
+				// /hostfs accessible
 			} catch (error) {
-				console.log("❌ Cannot access /hostfs:", error.message);
+				// Cannot access /hostfs
 				return null;
 			}
 
@@ -862,10 +855,10 @@ class SystemMonitor {
 			];
 
 			for (const approach of approaches) {
-				console.log(`🔍 Trying approach: ${approach.name} on ${approach.path}`);
+				// Trying approach
 				const stats = await this.getFilesystemStats(approach.path, '/');
 				if (stats && stats.total > 0) {
-					console.log(`✅ Success with ${approach.name}: ${this.formatBytes(stats.used)}/${this.formatBytes(stats.total)} (${stats.percentage.toFixed(1)}%)`);
+					// Success with approach
 					return [{
 						fs: 'hostfs',
 						type: 'unknown',
@@ -878,7 +871,7 @@ class SystemMonitor {
 				}
 			}
 
-			console.log("❌ All approaches failed, using hardcoded fallback");
+			// All approaches failed, using hardcoded fallback
 			// Hardcoded fallback as last resort
 			const fallbackStats = {
 				total: 100 * 1024 * 1024 * 1024, // 100GB
@@ -887,7 +880,7 @@ class SystemMonitor {
 				percentage: 45 // 45% used
 			};
 			
-			console.log(`💾 Using hardcoded fallback: ${this.formatBytes(fallbackStats.used)}/${this.formatBytes(fallbackStats.total)} (${fallbackStats.percentage}%)`);
+			// Using hardcoded fallback
 			return [{
 				fs: 'hostfs-fallback',
 				type: 'fallback',
@@ -905,7 +898,7 @@ class SystemMonitor {
 	}
 
 	async getHostDiskInfoAlternative() {
-		console.log("🔍 Using alternative disk detection method...");
+		// Using alternative disk detection method...
 		// Try using df command if available
 		try {
 			const { exec } = require('child_process');
@@ -922,9 +915,9 @@ class SystemMonitor {
 
 			for (const cmd of commands) {
 				try {
-					console.log(`🔍 Trying command: ${cmd}`);
+					// Trying command
 					const { stdout } = await execAsync(cmd, { timeout: 5000 });
-					console.log(`📊 Command output: ${stdout.trim()}`);
+					// Command output received
 					
 					if (stdout.includes('failed')) {
 						continue;
@@ -951,7 +944,7 @@ class SystemMonitor {
 							}
 							
 							if (total > 0) {
-								console.log(`✅ Success with df: ${this.formatBytes(used)}/${this.formatBytes(total)} (${percentage.toFixed(1)}%)`);
+								// Success with df
 								return [{
 									fs: data[0] || 'unknown',
 									type: 'df-detected',
@@ -965,15 +958,15 @@ class SystemMonitor {
 						}
 					}
 				} catch (cmdError) {
-					console.log(`⚠️ Command failed: ${cmd} - ${cmdError.message}`);
+					// Command failed
 				}
 			}
 		} catch (error) {
-			console.log("⚠️ df command not available or failed:", error.message);
+			// df command not available or failed
 		}
 		
 		// Final fallback
-		console.log("💾 Using alternative fallback values");
+		// Using alternative fallback values
 		return [{
 			fs: 'fallback',
 			type: 'default',
@@ -1045,17 +1038,17 @@ class SystemMonitor {
 	}
 
 	async getFilesystemStats(hostfsPath, mountPoint) {
-		console.log(`🔍 Getting filesystem stats for: ${hostfsPath} (mount: ${mountPoint})`);
+		// Getting filesystem stats
 		try {
 			// Check if the path exists first
 			if (!fs.existsSync(hostfsPath)) {
-				console.log(`❌ Path does not exist: ${hostfsPath}`);
+				// Path does not exist
 				return null;
 			}
 
 			// Use Node.js fs.statSync to get basic filesystem information
 			const stats = fs.statSync(hostfsPath);
-			console.log(`✅ Path accessible: ${hostfsPath}`);
+			// Path accessible
 			
 			// For a more accurate disk usage, try to use df command
 			const { exec } = require('child_process');
@@ -1065,10 +1058,10 @@ class SystemMonitor {
 			try {
 				// Get disk usage for the mount point
 				const dfCommand = `df -B1 '${hostfsPath}' 2>/dev/null | tail -1`;
-				console.log(`🔍 Running df command: ${dfCommand}`);
+				// Running df command
 				const { stdout } = await execAsync(dfCommand, { timeout: 5000 });
 				
-				console.log(`📊 df output: ${stdout.trim()}`);
+				// df output received
 				const parts = stdout.trim().split(/\s+/);
 				if (parts.length >= 6) {
 					const total = parseInt(parts[1]) || 0;
@@ -1076,7 +1069,7 @@ class SystemMonitor {
 					const available = parseInt(parts[3]) || 0;
 					const percentage = total > 0 ? (used / total) * 100 : 0;
 					
-					console.log(`💾 Disk stats - Total: ${this.formatBytes(total)}, Used: ${this.formatBytes(used)}, Free: ${this.formatBytes(available)}, Usage: ${percentage.toFixed(1)}%`);
+					// Disk stats calculated
 					
 					return {
 						total: total,
@@ -1085,15 +1078,15 @@ class SystemMonitor {
 						percentage: percentage
 					};
 				} else {
-					console.log(`⚠️ df output format unexpected: ${parts.length} parts`);
+					// df output format unexpected
 				}
 			} catch (error) {
 				// Fallback: estimate based on directory if df fails
-				console.log(`⚠️ df failed for ${hostfsPath}: ${error.message}`);
+				// df failed, using fallback
 				
 				// Try using du command as alternative
 				try {
-					console.log(`🔍 Trying du command for ${hostfsPath}...`);
+					// Trying du command
 					const duCommand = `du -sb '${hostfsPath}' 2>/dev/null | cut -f1`;
 					const { stdout: duStdout } = await execAsync(duCommand, { timeout: 5000 });
 					const usedBytes = parseInt(duStdout.trim()) || 0;
@@ -1112,7 +1105,7 @@ class SystemMonitor {
 						const totalBytes = usedBytes + freeBytes;
 						const percentage = totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0;
 						
-						console.log(`💾 Disk stats (du+stat) - Total: ${this.formatBytes(totalBytes)}, Used: ${this.formatBytes(usedBytes)}, Free: ${this.formatBytes(freeBytes)}, Usage: ${percentage.toFixed(1)}%`);
+						// Disk stats calculated with du+stat
 						
 						return {
 							total: totalBytes,
@@ -1122,11 +1115,11 @@ class SystemMonitor {
 						};
 					}
 				} catch (duError) {
-					console.log(`⚠️ du/stat commands also failed: ${duError.message}`);
+					// du/stat commands also failed
 				}
 				
 				// Final fallback: return some reasonable default values for the root filesystem
-				console.log(`⚠️ Using fallback estimation for ${mountPoint}`);
+				// Using fallback estimation
 				if (mountPoint === '/') {
 					const fallbackStats = {
 						total: 50 * 1024 * 1024 * 1024, // 50GB default
@@ -1134,12 +1127,12 @@ class SystemMonitor {
 						free: 30 * 1024 * 1024 * 1024,  // 30GB free
 						percentage: 40 // 40% used
 					};
-					console.log(`💾 Fallback stats - Total: ${this.formatBytes(fallbackStats.total)}, Used: ${this.formatBytes(fallbackStats.used)}, Free: ${this.formatBytes(fallbackStats.free)}, Usage: ${fallbackStats.percentage}%`);
+					// Fallback stats applied
 					return fallbackStats;
 				}
 			}
 		} catch (error) {
-			console.log(`❌ Cannot stat ${hostfsPath}:`, error.message);
+			// Cannot stat path
 		}
 		
 		return null;
@@ -1176,17 +1169,18 @@ class SystemMonitor {
 		const name = interfaceName.toLowerCase();
 		
 		if (name.includes('wl') || name.includes('wlan') || name.includes('wifi')) {
-			return `WiFi (${interfaceName})`;
+			return 'WiFi';
 		} else if (name.includes('en') || name.includes('eth')) {
-			return `Ethernet (${interfaceName})`;
+			return 'Ethernet';
 		} else if (name.includes('lo')) {
-			return `Loopback (${interfaceName})`;
+			return 'Loopback';
 		} else if (name.includes('docker') || name.includes('br-') || name.includes('veth')) {
-			return `Docker (${interfaceName})`;
+			return 'Docker';
 		} else if (name.includes('tun') || name.includes('tap')) {
-			return `VPN/Tunnel (${interfaceName})`;
+			return 'VPN/Tunnel';
 		} else {
-			return `${type} (${interfaceName})`;
+			// For other interface types, use the type if available, otherwise use the interface name
+			return type && type !== 'Unknown' ? type : interfaceName;
 		}
 	}
 }

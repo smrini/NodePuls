@@ -22,7 +22,7 @@ class UptimeMonitor {
 			websites.forEach((website) => {
 				try {
 					// Handle empty or null history gracefully
-					if (website.history && website.history.trim() !== '') {
+					if (website.history && typeof website.history === 'string' && website.history.trim() !== '') {
 						website.history = JSON.parse(website.history);
 					} else {
 						website.history = [];

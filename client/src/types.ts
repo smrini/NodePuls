@@ -1,6 +1,7 @@
 export interface DiskInfo {
 	id: string;
 	name: string;
+	displayName: string;
 	mount: string;
 	fs: string;
 	total: number;

@@ -66,11 +66,22 @@ const SystemStats: React.FC<SystemStatsProps> = ({ systemData, onNetworkInterfac
 		
 		if (systemData?.networkInterfaces && systemData.networkInterfaces.length > 0) {
 			if (!selectedNetwork) {
-				// Find the network interface that matches current data or use the first one
-				const primaryNetwork = systemData.networkInterfaces.find(iface => 
-					iface.rx_sec === systemData.network.rx_sec && 
-					iface.tx_sec === systemData.network.tx_sec
-				) || systemData.networkInterfaces[0];
+				// Find the network interface with active traffic first, then fall back to others
+				const interfacesWithTraffic = systemData.networkInterfaces.filter(iface => 
+					(iface.rx_sec > 0 || iface.tx_sec > 0)
+				);
+				
+				let primaryNetwork;
+				if (interfacesWithTraffic.length > 0) {
+					// Sort by total traffic (rx + tx) and pick the most active one
+					primaryNetwork = interfacesWithTraffic.sort((a, b) => 
+						(b.rx_sec + b.tx_sec) - (a.rx_sec + a.tx_sec)
+					)[0];
+				} else {
+					// No interfaces with traffic, use the first available interface
+					primaryNetwork = systemData.networkInterfaces[0];
+				}
+				
 				setSelectedNetwork(primaryNetwork);
 				onNetworkInterfaceChange?.(primaryNetwork);
 			} else {
@@ -167,48 +178,50 @@ const SystemStats: React.FC<SystemStatsProps> = ({ systemData, onNetworkInterfac
 					</div>
 				</div>
 				<div className="stat-content">
-					<div className="stat-value">
-						<span
-							className={`percentage ${getUsageColor(
-								systemData.cpu.usage ?? 0
-							)}`}>
-							{(systemData.cpu.usage ?? 0).toFixed(1)}%
-						</span>
-					</div>
-					<div className="stat-details">
-						<div className="detail">
-							<span>Cores: {systemData.cpu.cores ?? 0}</span>
-						</div>
-						<div className="detail">
-							<span>
-								Speed: {(systemData.cpu.speed ?? 0).toFixed(1)}{" "}
-								GHz
-							</span>
-						</div>
-						<div className="detail">
-							<span>
-								Temp:{" "}
-								<span
-									className={`${getTemperatureColor(
-										systemData.cpu.temperature ?? 0
-									)}`}>
-									{(systemData.cpu.temperature ?? 0).toFixed(
-										1
-									)}
-									°C
+					<div className="stat-usage-row">
+						<div className="stat-usage-info">
+							<div className="detail">
+								<span>Cores: {systemData.cpu.cores ?? 0}</span>
+							</div>
+							<div className="detail">
+								<span>
+									Speed: {(systemData.cpu.speed ?? 0).toFixed(1)}{" "}
+									GHz
 								</span>
+							</div>
+							<div className="detail">
+								<span>
+									Temp:{" "}
+									<span
+										className={`${getTemperatureColor(
+											systemData.cpu.temperature ?? 0
+										)}`}>
+										{(systemData.cpu.temperature ?? 0).toFixed(
+											1
+										)}
+										°C
+									</span>
+								</span>
+							</div>
+						</div>
+						<div className="stat-percentage">
+							<span
+								className={`percentage-large ${getUsageColor(
+									systemData.cpu.usage ?? 0
+								)}`}>
+								{(systemData.cpu.usage ?? 0).toFixed(1)}%
 							</span>
 						</div>
-						<div className="progress-bar">
-							<div
-								className={`progress-fill ${getUsageColor(
-									systemData.cpu.usage ?? 0
-								)}`}
-								style={{
-									width: `${systemData.cpu.usage ?? 0}%`,
-								}}
-							/>
-						</div>
+					</div>
+					<div className="progress-bar">
+						<div
+							className={`progress-fill ${getUsageColor(
+								systemData.cpu.usage ?? 0
+							)}`}
+							style={{
+								width: `${systemData.cpu.usage ?? 0}%`,
+							}}
+						/>
 					</div>
 				</div>
 			</div>
@@ -251,44 +264,46 @@ const SystemStats: React.FC<SystemStatsProps> = ({ systemData, onNetworkInterfac
 					)}
 				</div>
 				<div className="stat-content">
-					<div className="stat-value">
-						<span
-							className={`percentage ${getUsageColor(
-								getCurrentDiskData().percentage ?? 0
-							)}`}>
-							{(getCurrentDiskData().percentage ?? 0).toFixed(1)}%
-						</span>
-					</div>
-					<div className="stat-details">
-						<div className="detail">
-							<span>
-								Used: {formatBytes(getCurrentDiskData().used ?? 0)}
-							</span>
-						</div>
-						<div className="detail">
-							<span>
-								Total: {formatBytes(getCurrentDiskData().total ?? 0)}
-							</span>
-						</div>
-						{selectedDisk && (
+					<div className="stat-usage-row">
+						<div className="stat-usage-info">
 							<div className="detail">
-								<span className="selected-device">
-									{selectedDisk.name}
+								<span>
+									Used: {formatBytes(getCurrentDiskData().used ?? 0)}
 								</span>
 							</div>
-						)}
-						<div className="progress-bar">
-							<div
-								className={`progress-fill ${getUsageColor(
-									getCurrentDiskData().percentage ?? 0
-								)}`}
-								style={{
-									width: `${
-										getCurrentDiskData().percentage ?? 0
-									}%`,
-								}}
-							/>
+							<div className="detail">
+								<span>
+									Total: {formatBytes(getCurrentDiskData().total ?? 0)}
+								</span>
+							</div>
+							{selectedDisk && (
+								<div className="detail">
+									<span className="selected-device">
+										{selectedDisk.displayName || selectedDisk.name}
+									</span>
+								</div>
+							)}
 						</div>
+						<div className="stat-percentage">
+							<span
+								className={`percentage-large ${getUsageColor(
+									getCurrentDiskData().percentage ?? 0
+								)}`}>
+								{(getCurrentDiskData().percentage ?? 0).toFixed(1)}%
+							</span>
+						</div>
+					</div>
+					<div className="progress-bar">
+						<div
+							className={`progress-fill ${getUsageColor(
+								getCurrentDiskData().percentage ?? 0
+							)}`}
+							style={{
+								width: `${
+									getCurrentDiskData().percentage ?? 0
+								}%`,
+							}}
+						/>
 					</div>
 				</div>
 			</div>
@@ -301,38 +316,40 @@ const SystemStats: React.FC<SystemStatsProps> = ({ systemData, onNetworkInterfac
 					</div>
 				</div>
 				<div className="stat-content">
-					<div className="stat-value">
-						<span
-							className={`percentage ${getUsageColor(
-								systemData.memory.percentage ?? 0
-							)}`}>
-							{(systemData.memory.percentage ?? 0).toFixed(1)}%
-						</span>
-					</div>
-					<div className="stat-details">
-						<div className="detail">
-							<span>
-								Used: {formatBytes(systemData.memory.used ?? 0)}
-							</span>
+					<div className="stat-usage-row">
+						<div className="stat-usage-info">
+							<div className="detail">
+								<span>
+									Used: {formatBytes(systemData.memory.used ?? 0)}
+								</span>
+							</div>
+							<div className="detail">
+								<span>
+									Total:{" "}
+									{formatBytes(systemData.memory.total ?? 0)}
+								</span>
+							</div>
 						</div>
-						<div className="detail">
-							<span>
-								Total:{" "}
-								{formatBytes(systemData.memory.total ?? 0)}
-							</span>
-						</div>
-						<div className="progress-bar">
-							<div
-								className={`progress-fill ${getUsageColor(
+						<div className="stat-percentage">
+							<span
+								className={`percentage-large ${getUsageColor(
 									systemData.memory.percentage ?? 0
-								)}`}
-								style={{
-									width: `${
-										systemData.memory.percentage ?? 0
-									}%`,
-								}}
-							/>
+								)}`}>
+								{(systemData.memory.percentage ?? 0).toFixed(1)}%
+							</span>
 						</div>
+					</div>
+					<div className="progress-bar">
+						<div
+							className={`progress-fill ${getUsageColor(
+								systemData.memory.percentage ?? 0
+							)}`}
+							style={{
+								width: `${
+									systemData.memory.percentage ?? 0
+								}%`,
+							}}
+						/>
 					</div>
 				</div>
 			</div>
@@ -364,10 +381,15 @@ const SystemStats: React.FC<SystemStatsProps> = ({ systemData, onNetworkInterfac
 												onNetworkInterfaceChange?.(iface);
 											}}>
 											<div className="dropdown-item-main">
-												<span className="dropdown-item-name">{iface.name}</span>
+												<span className="dropdown-item-name">
+													{iface.name}
+													{(iface.rx_sec > 0 || iface.tx_sec > 0) && (
+														<span className="traffic-indicator" title="Active traffic">🟢</span>
+													)}
+												</span>
 												<span className="dropdown-item-detail">{iface.type}</span>
 											</div>
-											<span className="dropdown-item-usage">
+											<span className={`dropdown-item-usage ${(iface.rx_sec > 0 || iface.tx_sec > 0) ? 'active-traffic' : 'no-traffic'}`}>
 												{formatSpeed(iface.rx_sec + iface.tx_sec)}
 											</span>
 										</button>

@@ -1,3 +1,26 @@
+export interface DiskInfo {
+	id: string;
+	name: string;
+	displayName: string;
+	mount: string;
+	fs: string;
+	total: number;
+	used: number;
+	free: number;
+	percentage: number;
+	type?: string;
+}
+
+export interface NetworkInterface {
+	id: string;
+	name: string;
+	iface: string;
+	type: string;
+	rx_sec: number;
+	tx_sec: number;
+	priority?: number;
+}
+
 export interface SystemData {
 	timestamp: number;
 	cpu: {
@@ -23,6 +46,9 @@ export interface SystemData {
 		rx_sec: number;
 		tx_sec: number;
 	};
+	// Additional data for dropdowns
+	disks?: DiskInfo[];
+	networkInterfaces?: NetworkInterface[];
 	uptime: number;
 }
 

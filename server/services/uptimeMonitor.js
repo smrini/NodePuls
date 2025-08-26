@@ -14,18 +14,25 @@ class UptimeMonitor {
 
 	async init() {
 		try {
+			// Wait for database to be fully initialized
+			await this.db.waitForInit();
+
 			const websites = await this.db.getAllWebsites();
 			this.websites.clear();
 			websites.forEach((website) => {
 				try {
-					website.history = website.history
-						? JSON.parse(website.history)
-						: [];
+					// Handle empty or null history gracefully
+					if (website.history && typeof website.history === 'string' && website.history.trim() !== '') {
+						website.history = JSON.parse(website.history);
+					} else {
+						website.history = [];
+					}
 				} catch (e) {
 					console.error(
 						`Error parsing history for ${website.name}:`,
-						e
+						e.message
 					);
+					console.log(`Raw history data: "${website.history}"`);
 					website.history = [];
 				}
 				this.websites.set(website.id, website);

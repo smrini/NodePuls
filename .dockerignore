@@ -1,0 +1,53 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Client build artifacts (will be built in Docker)
+client/build/
+client/node_modules/
+
+# Environment files (will use Docker environment)
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Database files (will be persisted in volume)
+server/data/*.db
+server/data/*.db-*
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Documentation
+*.md
+!README.md
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Windows specific
+setup-windows.bat
+
+# Temporary files
+*.tmp
+*.temp

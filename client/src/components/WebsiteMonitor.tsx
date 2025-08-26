@@ -37,8 +37,6 @@ interface WebsiteCardProps {
 	handleCardClick: (e: React.MouseEvent, website: Website) => void;
 	getStatusIcon: (status: Website["status"]) => React.ReactNode;
 	formatUrl: (url: string) => string;
-	formatUptime: (uptime: number) => string;
-	getUptimeColor: (uptime: number) => string;
 	formatResponseTime: (time?: number) => string;
 	formatUpSince: (upSince: number | null) => string;
 	openAnalyticsModal: (website: Website) => void;
@@ -56,8 +54,6 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 	handleCardClick,
 	getStatusIcon,
 	formatUrl,
-	formatUptime,
-	getUptimeColor,
 	formatResponseTime,
 	formatUpSince,
 	openAnalyticsModal,
@@ -110,6 +106,9 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 			{/* Compact Card Header */}
 			<div className="card-header">
 				<div
+					style={{
+						marginRight: "10px",
+					}}
 					className="drag-handle"
 					onClick={(e) => e.stopPropagation()}>
 					<GripVertical size={16} />
@@ -124,11 +123,6 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 								alignItems: "center",
 								gap: "5px",
 							}}>
-							<div
-								className="status-indicator"
-								style={{ marginBottom: "3px" }}>
-								{getStatusIcon(website.status)}
-							</div>
 							<h4 className="website-name">{website.name}</h4>
 						</div>
 						<p className="website-url">{formatUrl(website.url)}</p>
@@ -136,12 +130,11 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 				</div>
 
 				<div className="card-actions">
-					<span
-						className={`uptime-badge ${getUptimeColor(
-							website.uptime
-						)}`}>
-						{formatUptime(website.uptime)}
-					</span>
+					<div
+								className="status-indicator"
+								style={{ marginBottom: "3px" }}>
+								{getStatusIcon(website.status)}
+							</div>
 					<button
 						className="expand-btn"
 						onClick={() => toggleCardExpansion(website.id)}
@@ -356,11 +349,6 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 		});
 	};
 
-	const formatUptime = (uptime: number) => {
-		// Backend already sends uptime as a percentage (0-100)
-		return `${uptime.toFixed(1)}%`;
-	};
-
 	const formatUrl = (url: string) => {
 		try {
 			const urlObj = new URL(url);
@@ -368,13 +356,6 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 		} catch {
 			return url;
 		}
-	};
-
-	const getUptimeColor = (uptime: number) => {
-		if (uptime >= 99) return "excellent";
-		if (uptime >= 95) return "good";
-		if (uptime >= 90) return "warning";
-		return "poor";
 	};
 
 	// Calculate how long the site has been up
@@ -566,8 +547,6 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 									handleCardClick={handleCardClick}
 									getStatusIcon={getStatusIcon}
 									formatUrl={formatUrl}
-									formatUptime={formatUptime}
-									getUptimeColor={getUptimeColor}
 									formatResponseTime={formatResponseTime}
 									formatUpSince={formatUpSince}
 									openAnalyticsModal={openAnalyticsModal}
@@ -600,16 +579,6 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 							</div>{" "}
 							<div className="modal-body">
 								<div className="analytics-overview">
-									<div className="metric-card">
-										<div className="metric-value">
-											{formatUptime(
-												currentAnalyticsWebsite.uptime
-											)}
-										</div>
-										<div className="metric-label">
-											Uptime
-										</div>
-									</div>
 									<div className="metric-card">
 										<div className="metric-value">
 											{formatResponseTime(

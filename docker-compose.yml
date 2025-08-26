@@ -1,0 +1,88 @@
+version: "3.8" # Consider updating to a newer Docker Compose file format version for newer features.
+
+services:
+    homelab-dashboard:
+        build:
+            context: . # Explicitly define the build context
+            dockerfile: Dockerfile # Explicitly define the Dockerfile path
+        container_name: homelab-dashboard
+        restart: unless-stopped
+        # ports removed - using host networking instead
+        environment:
+            # Application-specific environment variables for configuration
+            # NODE_ENV should almost always be 'production' in a deployed container
+            - NODE_ENV=production
+            - PORT=3020
+            # CLIENT_PORT removed - using single port setup
+            - DB_PATH=/usr/src/app/server/data/homelab.db
+            # CORS_ORIGIN will be auto-generated from PORT for single port setup
+
+            # Monitoring settings
+            - MONITOR_INTERVAL=5000
+            - CLEANUP_INTERVAL=24
+            - DEFAULT_TIMEOUT=10000
+            - MAX_HISTORY_ENTRIES=100
+            - WEBSITE_DOWN_THRESHOLD=3
+            - SYSTEM_UPDATE_INTERVAL=5000
+            - WEBSITE_CHECK_INTERVAL=*/1 * * * *
+            - WEBSITE_CHECK_TIMEOUT=5000
+            - MAX_HISTORY_LENGTH=60
+            - MAX_WEBSITE_HISTORY=1440
+
+            # Feature flags
+            - ENABLE_CPU_TEMPERATURE=true
+            - ENABLE_DISK_IO_MONITORING=true
+            - ENABLE_PROCESS_MONITORING=true
+            - ENABLE_EMAIL_NOTIFICATIONS=false # Consider using secrets for credentials if enabling
+
+            # Security settings for the application itself (not container security)
+            - ENABLE_HELMET=true
+            - TRUST_PROXY=false
+
+            # Logging settings
+            - LOG_LEVEL=info
+            - ENABLE_DEBUG_LOGGING=false
+
+            # Performance settings
+            - COMPRESSION_LEVEL=6
+            - REQUEST_TIMEOUT=10000
+            - MAX_CONNECTIONS=100
+
+            # System paths for Docker/Linux (used by the application to find host info)
+            - PROC_PATH=/proc
+            - SYS_PATH=/sys
+
+            # Dashboard display settings
+            - DASHBOARD_DOMAIN=localhost # Change to your actual domain/IP if accessed remotely
+            - ENABLE_HTTPS_REDIRECT=false
+            - DEFAULT_WEBSITES=[]
+
+        volumes:
+            # Mount host /proc, /sys, and /dev for system monitoring.
+            # Using 'ro' (read-only) for better security
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /dev:/dev:ro
+            # Mount host root filesystem for disk monitoring (read-only)
+            - /:/hostfs:ro
+            # Persistent volume for SQLite database data
+            - homelab-data:/usr/src/app/server/data
+
+        # Use host network for better network monitoring
+        network_mode: host
+
+        # Container Security Configuration (MINIMAL PRIVILEGES)
+        # Using minimal required capabilities instead of privileged mode
+        cap_add:
+            - SYS_PTRACE       # Required for process monitoring
+            - DAC_READ_SEARCH  # Required for reading system files
+            - NET_RAW          # Required for network monitoring
+        
+        # Use host PID namespace for process monitoring
+        pid: host
+
+volumes:
+    homelab-data:
+        driver: local # Defines a local Docker volume for persistent data
+
+# Remove networks section since we're using host networking

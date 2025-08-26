@@ -33,7 +33,8 @@ const io = socketIo(server, {
 });
 
 // Middleware
-app.use(helmet());
+// Temporarily disable Helmet to test CSP issues
+// app.use(helmet());
 app.use(compression());
 app.use(
 	cors({
@@ -44,9 +45,29 @@ app.use(
 app.use(express.json());
 
 // Serve static files from React build
-if (process.env.NODE_ENV === "production") {
-	app.use(express.static(path.join(__dirname, "public")));
+const publicPath = path.join(__dirname, "public");
+console.log(`📁 Serving static files from: ${publicPath}`);
+
+// Check if index.html exists
+const fs = require("fs");
+const indexPath = path.join(publicPath, "index.html");
+if (fs.existsSync(indexPath)) {
+	console.log(`✅ Found index.html at: ${indexPath}`);
+} else {
+	console.log(`❌ Missing index.html at: ${indexPath}`);
+	console.log(`💡 Run 'npm run build' to create the React build files`);
+	try {
+		console.log(
+			`📂 Public directory contents:`,
+			fs.readdirSync(publicPath).join(", ")
+		);
+	} catch (e) {
+		console.log(`❌ Public directory doesn't exist: ${publicPath}`);
+		console.log(`💡 Run 'npm run build' to create the React build files`);
+	}
 }
+
+app.use(express.static(publicPath));
 
 // API Routes
 app.get("/api/config", (req, res) => {
@@ -212,12 +233,33 @@ cron.schedule("*/1 * * * *", async () => {
 	io.emit("websites", await uptimeMonitor.getWebsites());
 });
 
-// Serve React app for all other routes in production
-if (process.env.NODE_ENV === "production") {
-	app.get("*", (req, res) => {
-		res.sendFile(path.join(__dirname, "public", "index.html"));
-	});
-}
+// Serve React app for all other routes
+app.get("*", (req, res) => {
+	const indexPath = path.join(__dirname, "public", "index.html");
+	
+	// Check if the file exists before trying to serve it
+	const fs = require("fs");
+	if (fs.existsSync(indexPath)) {
+		console.log(`📄 Serving index.html for ${req.url} from: ${indexPath}`);
+		res.sendFile(indexPath, (err) => {
+			if (err) {
+				console.error(`❌ Error serving index.html:`, err);
+				res.status(500).send("Error loading page");
+			}
+		});
+	} else {
+		res.status(404).json({
+			error: "React app not built",
+			message: "Run 'npm run build' to create the React build files",
+			endpoints: {
+				health: "/api/health",
+				config: "/api/config",
+				system: "/api/system",
+				websites: "/api/websites",
+			},
+		});
+	}
+});
 
 const startServer = async () => {
 	try {

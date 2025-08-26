@@ -14,15 +14,9 @@ function App() {
 	useEffect(() => {
 		const fetchConfig = async () => {
 			try {
-				// Use absolute URL for config fetch to ensure it works
-				const serverPort = process.env.REACT_APP_SERVER_PORT || '3050';
-				const configUrl =
-					process.env.NODE_ENV === "production"
-						? "/api/config"
-						: `${
-								process.env.REACT_APP_API_BASE_URL ||
-								`http://localhost:${serverPort}`
-						  }/api/config`;
+				// In Docker/production, use relative URL (same origin)
+				// This works because both frontend and API are served from same port
+				const configUrl = "/api/config";
 
 				const response = await fetch(configUrl);
 
@@ -64,8 +58,9 @@ function App() {
 			return;
 		}
 
-		// Connect to Socket.IO server
-		const newSocket = io(config.socketUrl);
+		// Connect to Socket.IO server using relative URL (same origin)
+		// This automatically uses the current window.location origin
+		const newSocket = io();
 		setSocket(newSocket);
 
 		// Connection handlers

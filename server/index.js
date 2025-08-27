@@ -20,7 +20,7 @@ const server = http.createServer(app);
 
 // Use CORS origin from environment configuration
 const corsOrigin = config.server.corsOrigin;
-console.log(`🔍 DEBUG - CLIENT_PORT: ${process.env.CLIENT_PORT}`);
+console.log(`🔍 DEBUG - Server Port: ${process.env.PORT || 3020}`);
 console.log(`🔍 DEBUG - Config CORS Origin: ${corsOrigin}`);
 console.log(`Server allowing CORS from: ${corsOrigin}`);
 
@@ -33,8 +33,17 @@ const io = socketIo(server, {
 });
 
 // Middleware
-// Temporarily disable Helmet to test CSP issues
-// app.use(helmet());
+app.use(helmet({
+	contentSecurityPolicy: {
+		directives: {
+			defaultSrc: ["'self'"],
+			scriptSrc: ["'self'", "'unsafe-inline'"],
+			styleSrc: ["'self'", "'unsafe-inline'"],
+			imgSrc: ["'self'", "data:", "https:"],
+			connectSrc: ["'self'", "ws:", "wss:"],
+		},
+	},
+}));
 app.use(compression());
 app.use(
 	cors({

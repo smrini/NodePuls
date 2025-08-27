@@ -31,7 +31,7 @@
 }
 
 .logo {
-	height: 41px;
+	height: 40px;
 	width: auto;
 	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 	transition: transform 0.2s ease-in-out;

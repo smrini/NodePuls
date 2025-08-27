@@ -32,7 +32,7 @@ function App() {
 			} catch (error) {
 				console.error("Error fetching client configuration:", error);
 				// Fallback to default configuration
-				const serverPort = process.env.REACT_APP_SERVER_PORT || '3050';
+				const serverPort = process.env.REACT_APP_SERVER_PORT || '3020';
 				setConfig({
 					socketUrl:
 						process.env.REACT_APP_SOCKET_URL ||

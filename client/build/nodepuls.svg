@@ -17,9 +17,9 @@
   </defs>
   
   <!-- Main Text, stretched to fill width -->
-  <text x="0" y="38" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#d4d2d2">
+  <text x="0" y="36" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#d4d2d2">
     Node
-    <tspan x="100" y="38" fill="url(#pulseGradient)" filter="url(#glow)">
+    <tspan x="99" y="36" fill="url(#pulseGradient)" filter="url(#glow)">
       <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>puls
     </tspan>
   </text>

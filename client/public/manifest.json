@@ -1,6 +1,6 @@
 {
-  "short_name": "Server Dashboard",
-  "name": "Server Dashboard - System Monitoring",
+  "short_name": "NodePuls",
+  "name": "NodePuls - Homelab Monitoring",
   "icons": [
     {
       "src": "favicon.ico",

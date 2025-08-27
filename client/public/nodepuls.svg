@@ -17,15 +17,15 @@
   </defs>
   
   <!-- Main Text, stretched to fill width -->
-  <text x="0" y="38" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#d4d2d2">
+  <text x="0" y="38" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#1f2937">
     Node
-    <tspan x="100" y="38" fill="url(#pulseGradient)" filter="url(#glow)">
+    <tspan x="110" y="38" fill="url(#pulseGradient)" filter="url(#glow)">
       <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>puls
     </tspan>
   </text>
   
   <!-- Tagline, aligned at the bottom -->
-  <text x="2" y="58" font-family="Arial, sans-serif" font-size="16" fill="#6b7280" opacity="0.8">
+  <text x="2" y="58" font-family="Arial, sans-serif" font-size="12" fill="#6b7280" opacity="0.8">
     <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
     HOMELAB MONITORING
   </text>

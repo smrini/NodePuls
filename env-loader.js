@@ -26,8 +26,8 @@ class EnvLoader {
 					const packageJson = JSON.parse(
 						fs.readFileSync(packageJsonPath, "utf8")
 					);
-					// Check if this is the root package.json (has homelab-dashboard name)
-					if (packageJson.name === "homelab-dashboard") {
+					// Check if this is the root package.json (has nodepuls name)
+					if (packageJson.name === "nodepuls") {
 						return currentPath;
 					}
 				} catch (error) {

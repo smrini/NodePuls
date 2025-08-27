@@ -1,246 +1,695 @@
-# Homelab Dashboard
+# NodePuls 🚀
 
-A lightweight, real-time server monitoring dashboard built with Node.js and React. Perfect for monitoring your homelab servers with minimal resource usage.
+<div align="center">
+
+![NodePuls Logo](client/public/nodepuls.svg)
+
+**A beautiful, lightweight real-time homelab monitoring dashboard**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19+-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+
+*Real-time system monitoring with pulse animations and modern UI design*
+
+[📖 Documentation](#-documentation) • [🚀 Quick Start](#-quick-start) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Docker](#-docker-deployment)
+
+</div>
+
+---
 
 ## ✨ Features
 
--   **Real-time System Monitoring**: CPU, RAM, disk usage, and network activity
--   **Website Uptime Monitoring**: Track multiple websites with response times
--   **Modern UI**: Clean, dark theme similar to Grafana/Netdata
--   **WebSocket Updates**: Live data updates without page refreshes
--   **Responsive Design**: Works on desktop, tablet, and mobile
--   **Centralized Configuration**: Single file environment management
--   **Easy Port Management**: Simple 2-variable port configuration
--   **Lightweight**: Minimal resource usage perfect for homelab environments
+### 🖥️ **System Monitoring**
+- **Real-time Metrics**: CPU, Memory, Disk, Network usage with live updates
+- **Network Interface Selection**: Monitor specific network adapters
+- **System Uptime**: Track server uptime with formatted display
+- **Resource Charts**: Beautiful animated charts showing usage trends
 
-## 🛠 Tech Stack
+### 🌐 **Website Monitoring**
+- **Uptime Tracking**: Monitor multiple websites simultaneously
+- **Response Time**: Track website performance metrics
+- **Status History**: Historical uptime data with SQLite storage
+- **Smart Alerts**: Configurable notifications for downtime
 
--   **Backend**: Node.js, Express.js, Socket.IO, SQLite
--   **Frontend**: React, TypeScript, Recharts
--   **Monitoring**: systeminformation, axios
--   **Configuration**: Centralized environment loader
+### 🎨 **Modern UI/UX**
+- **Animated Logo**: Pulsing NodePuls branding with gradient effects
+- **Dark Theme**: Professional dark interface optimized for 24/7 monitoring
+- **Responsive Design**: Perfect on desktop, tablet, and mobile devices
+- **Live Updates**: WebSocket-powered real-time data without page refreshes
+- **Interactive Charts**: Hover effects and smooth animations
+
+### ⚡ **Performance & Reliability**
+- **Lightweight**: Minimal resource footprint for homelab environments
+- **WebSocket Communication**: Efficient real-time data transmission
+- **SQLite Database**: Zero-configuration embedded database
+- **Error Handling**: Robust error recovery and connection management
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 19, TypeScript, Recharts, WebSocket Client |
+| **Backend** | Node.js, Express.js, Socket.IO, SQLite3 |
+| **Monitoring** | systeminformation, axios, node-cron |
+| **Build Tools** | Create React App, Nodemon, Concurrently |
+| **Deployment** | Docker, PM2, systemd, Nginx |
+
+---
 
 ## 🚀 Quick Start
 
-### Development Setup
+### Prerequisites
+- **Node.js 18+** and npm
+- **Git** for cloning
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
 
-1. **Clone and install dependencies:**
-    ```bash
-    git clone <repository-url>
-    cd ServerDasboard
-    npm run install:all
-    ```
+### 1️⃣ Installation
 
-2. **Configure environment:**
-    ```bash
-    npm run setup-env    # Creates .env with defaults
-    npm run validate-env # Validates configuration
-    ```
+```bash
+# Clone repository
+git clone <your-repository-url> nodepuls
+cd nodepuls
 
-3. **Start development servers:**
-    ```bash
-    npm run dev
-    ```
+# Install all dependencies (client + server)
+npm run install:all
 
-4. **Access the dashboard:**
-    - Client: `http://localhost:3020`
-    - Server API: `http://localhost:3050`
+# Setup environment configuration
+npm run setup-env
+```
 
-### Production Setup
+### 2️⃣ Development
 
-1. **Install and build:**
-    ```bash
-    git clone <repository-url> ServerDasboard
-    cd ServerDasboard
-    npm run install:all
-    npm run build:prod
-    ```
+```bash
+# Start development servers
+npm run dev
 
-2. **Start production server:**
-    ```bash
-    npm run start:prod
-    ```
+# Or start with auto-rebuild on changes
+npm run dev:watch
+```
+
+**Access your dashboard:**
+- 🌟 **Main App**: http://localhost:3050
+- 🔧 **Development Client**: http://localhost:3020 (dev mode only)
+- 📡 **API Endpoint**: http://localhost:3050/api
+
+### 3️⃣ Production
+
+```bash
+# Build and start production server
+npm run start:prod
+
+# Or manually
+npm run build:prod
+npm start
+```
+
+---
 
 ## 📋 Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start both client and server in development mode |
-| `npm run server` | Start only the Express server |
-| `npm run client` | Start only the React client |
-| `npm run build` | Build React client for production |
-| `npm run build:prod` | Build and copy to server public directory |
-| `npm start` | Start production server |
-| `npm run start:prod` | Build and start production |
-| `npm run install:all` | Install dependencies for both server and client |
-| `npm run validate-env` | Validate environment configuration |
-| `npm run setup-env` | Create initial environment files |
-
-## 🔧 Configuration
-
-### Simple Port Configuration
-
-The dashboard uses a **simplified 2-variable system** for port management:
-
-**Edit `.env` file:**
-```env
-# Only these 2 variables needed!
-PORT=3050          # Server port
-CLIENT_PORT=3020   # Client port (development only)
-
-# All React variables auto-generated by env-loader.js:
-# REACT_APP_SERVER_PORT=3050 (auto)
-# REACT_APP_API_BASE_URL=http://localhost:3050 (auto)  
-# REACT_APP_SOCKET_URL=http://localhost:3050 (auto)
+### Development Commands
+```bash
+npm run dev          # Start both client and server
+npm run dev:watch    # Start with auto-rebuild on file changes
+npm run server       # Start only Express server (nodemon)
+npm run client       # Start only React development server
 ```
 
-**To change ports:**
+### Build Commands
+```bash
+npm run build        # Build React client for production
+npm run build:prod   # Build and copy to server public directory
+npm run build:watch  # Build with auto-rebuild on changes
+```
+
+### Production Commands
+```bash
+npm start           # Start production server
+npm run start:prod  # Build and start production
+```
+
+### Utility Commands
+```bash
+npm run install:all  # Install dependencies for client and server
+npm run validate-env # Validate environment configuration
+npm run setup-env    # Create initial .env files
+```
+
+---
+
+## ⚙️ Configuration
+
+### 🔧 Simple Port Configuration
+
+NodePuls uses an **intelligent 2-variable system** for effortless port management:
+
+```env
+# 📝 Edit .env file - Only these 2 variables needed!
+PORT=3050          # 🌐 Server port (main application)
+CLIENT_PORT=3020   # 🔧 Client port (development only)
+
+# ✨ All React variables auto-generated by env-loader.js:
+# REACT_APP_SERVER_PORT=3050 (auto-generated)
+# REACT_APP_API_BASE_URL=http://localhost:3050 (auto-generated)  
+# REACT_APP_SOCKET_URL=http://localhost:3050 (auto-generated)
+```
+
+**🚀 To change ports:**
 1. Edit `PORT` and `CLIENT_PORT` in `.env`
-2. Restart: `npm run dev`
-3. Done! All URLs update automatically
+2. Restart with `npm run dev`
+3. Done! All URLs update automatically ✅
 
-### Environment Variables
+### 🔑 Environment Variables
 
-**Core Configuration:**
+#### **Core Configuration**
 ```env
-# Port Configuration (required)
-PORT=3050                    # Server port
-CLIENT_PORT=3020             # React dev server port
+# 🌐 Network Settings
+PORT=3050                    # Main server port
+CLIENT_PORT=3020             # React development server port
+HOST=0.0.0.0                 # Server host (0.0.0.0 for all interfaces)
 
-# Application Settings
-NODE_ENV=development         # Environment mode
-DB_PATH=./server/data/homelab.db      # SQLite database path
+# 📊 Application Settings
+NODE_ENV=development         # Environment: development|production
+DB_PATH=./server/data/homelab.db      # SQLite database location
+LOG_LEVEL=info               # Logging level: error|warn|info|debug
 ```
 
-**Monitoring Configuration:**
+#### **🔍 Monitoring Configuration**
 ```env
+# ⏱️ Timing Settings
 MONITOR_INTERVAL=5000                 # System monitoring interval (ms)
 CLEANUP_INTERVAL=24                   # Data cleanup interval (hours)
-DEFAULT_TIMEOUT=10000                 # Request timeout (ms)
-MAX_HISTORY_ENTRIES=100               # Max entries per chart
-WEBSITE_DOWN_THRESHOLD=3              # Failed checks before "down"
-REACT_APP_CHART_UPDATE_INTERVAL=5000  # Chart refresh rate (ms)
-REACT_APP_DEFAULT_TIME_RANGE=60       # Default time range
+DEFAULT_TIMEOUT=10000                 # HTTP request timeout (ms)
+CHART_UPDATE_INTERVAL=5000            # Real-time chart updates (ms)
+
+# 📈 Data Management
+MAX_HISTORY_ENTRIES=100               # Maximum chart data points
+WEBSITE_DOWN_THRESHOLD=3              # Failed checks before marking "down"
+DEFAULT_TIME_RANGE=60                 # Default chart time range (minutes)
 ```
 
-**Feature Flags:**
+#### **⚡ Feature Toggles**
 ```env
+# 🔥 System Monitoring Features
 ENABLE_CPU_TEMPERATURE=true          # CPU temperature monitoring
-ENABLE_DISK_IO_MONITORING=false      # Disk I/O monitoring
-ENABLE_PROCESS_MONITORING=false      # Process monitoring
-ENABLE_EMAIL_NOTIFICATIONS=false     # Email alerts
+ENABLE_DISK_IO_MONITORING=false      # Disk I/O statistics
+ENABLE_PROCESS_MONITORING=false      # Running processes monitoring
+ENABLE_NETWORK_INTERFACES=true       # Multiple network interface support
+
+# 📧 Notification Features
+ENABLE_EMAIL_NOTIFICATIONS=false     # Email alerts for downtime
+ENABLE_WEBHOOK_NOTIFICATIONS=false   # Webhook alerts
+ENABLE_DESKTOP_NOTIFICATIONS=true    # Browser notifications
 ```
 
-### System Monitoring
+#### **📧 Email Notifications (Optional)**
+```env
+# 📬 SMTP Configuration
+SMTP_HOST=smtp.gmail.com             # SMTP server
+SMTP_PORT=587                        # SMTP port
+SMTP_SECURE=false                    # Use TLS (true for port 465)
+SMTP_USER=your-email@gmail.com       # SMTP username
+SMTP_PASS=your-app-password          # SMTP password/app password
 
-The dashboard automatically monitors:
-- **CPU Usage**: Real-time percentage and load average
-- **Memory Usage**: RAM usage, available memory, and swap
-- **Disk Usage**: Free/used space for all mounted drives
-- **Network Activity**: Upload/download speeds
-- **System Info**: OS, uptime, and system load
+# 📮 Email Settings
+EMAIL_FROM=nodepuls@yourdomain.com   # "From" address
+EMAIL_TO=admin@yourdomain.com        # Alert recipients (comma-separated)
+EMAIL_SUBJECT=NodePuls Alert         # Email subject prefix
+```
 
-### Website Monitoring
+### 📊 System Monitoring
 
-Add websites to monitor in the dashboard interface:
-1. Click "Add Website" button
-2. Enter website name and URL
-3. Set check interval (default: 1 minute)
-4. Monitor response times and uptime percentage
+NodePuls automatically monitors:
+
+| Metric | Details | Update Frequency |
+|--------|---------|------------------|
+| **🔥 CPU Usage** | Real-time percentage, load average, core count | 5 seconds |
+| **💾 Memory Usage** | RAM usage, available memory, swap usage | 5 seconds |
+| **💿 Disk Usage** | Free/used space for all mounted drives | 30 seconds |
+| **🌐 Network Activity** | Upload/download speeds, interface selection | 5 seconds |
+| **⏰ System Info** | OS details, uptime, hostname, architecture | On startup |
+| **🌡️ Temperature** | CPU temperature (if supported) | 10 seconds |
+
+### 🌐 Website Monitoring
+
+**Adding Websites:**
+1. 🖱️ Click **"Add Website"** button in the dashboard
+2. 📝 Enter website name and URL
+3. ⏱️ Set check interval (default: 60 seconds)
+4. 📊 Monitor response times and uptime percentage
+
+**Monitored Metrics:**
+- ✅ **Uptime Status**: Online/Offline status
+- ⏱️ **Response Time**: Request duration in milliseconds
+- 📈 **Uptime Percentage**: Historical uptime statistics
+- 🕐 **Last Check**: Timestamp of most recent check
+- 📜 **Status History**: SQLite-stored historical data
+
+---
 
 ## 📋 System Requirements
 
--   **Minimum**: 512MB RAM, 1 CPU core
--   **Recommended**: 1GB RAM, 2 CPU cores
--   **Disk Space**: < 100MB
--   **OS**: Linux, macOS, Windows, or any Node.js supported platform
+### **Minimum Requirements**
+- **RAM**: 512MB available
+- **CPU**: 1 core (any architecture)
+- **Storage**: 100MB free space
+- **Node.js**: Version 18.0+
+- **OS**: Any Node.js supported platform
 
-## 🔧 File Structure
+### **Recommended Specifications**
+- **RAM**: 1GB+ available
+- **CPU**: 2+ cores
+- **Storage**: 500MB+ free space
+- **Network**: Stable internet connection
+- **Browser**: Modern browser with WebSocket support
+
+### **Supported Platforms**
+- 🐧 **Linux**: Ubuntu, Debian, CentOS, RHEL, Arch
+- 🍎 **macOS**: 10.15+ (Catalina and newer)
+- 🪟 **Windows**: Windows 10/11, Windows Server 2019+
+- 🐳 **Docker**: Any Docker-supported platform
+
+---
+
+## 📁 Project Structure
 
 ```
-ServerDasboard/
-├── .env                    # Main configuration
-├── package.json           # Root dependencies and scripts
-├── config.js              # Centralized configuration loader
-├── env-loader.js           # Environment variable loader
-├── validate-env.js         # Environment validation
-├── setup-env.js           # Environment setup utility
-├── server/
-│   ├── index.js           # Express server
-│   ├── config/            # Server configuration
-│   ├── services/          # Monitoring services
-│   └── data/              # SQLite database
-└── client/
-    ├── package.json       # Client dependencies
-    ├── start-client.js    # Client startup script
-    ├── src/               # React source code
-    └── public/            # Static assets
+nodepuls/
+├── 📁 client/                   # React frontend application
+│   ├── 📁 public/               # Static assets
+│   │   ├── 🎨 nodepuls.svg      # Animated logo
+│   │   ├── 📄 index.html        # HTML template
+│   │   └── 📋 manifest.json     # PWA manifest
+│   ├── 📁 src/                  # React source code
+│   │   ├── 📁 components/       # React components
+│   │   │   ├── 📊 Dashboard.tsx      # Main dashboard
+│   │   │   ├── 📈 ResourceCharts.tsx # System charts
+│   │   │   ├── 📊 SystemStats.tsx    # System overview
+│   │   │   ├── 🌐 WebsiteMonitor.tsx # Website monitoring
+│   │   │   └── 🔗 ConnectionStatus.tsx # WebSocket status
+│   │   ├── 🎨 App.css           # Global styles
+│   │   ├── ⚛️ App.tsx           # Main App component
+│   │   └── 📄 types.ts          # TypeScript definitions
+│   └── 📦 package.json          # Client dependencies
+├── 📁 server/                   # Node.js backend
+│   ├── � config/               # Configuration files
+│   ├── 📁 data/                 # SQLite database storage
+│   ├── 📁 public/               # Built React app (production)
+│   ├── 📁 services/             # Core services
+│   │   ├── 🗄️ databaseService.js    # SQLite operations
+│   │   ├── 📊 systemMonitor.js      # System monitoring
+│   │   └── 🌐 uptimeMonitor.js      # Website monitoring
+│   └── 🚀 index.js              # Express server entry
+├── 🐳 docker-compose.yml        # Docker deployment
+├── 🐳 Dockerfile               # Docker image definition
+├── ⚙️ env-loader.js             # Environment management
+├── 📝 .env.example             # Environment template
+└── 📦 package.json             # Main project config
 ```
+
+---
+
+## 🚀 Deployment Options
+
+### 🐳 Docker Deployment (Recommended)
+
+#### **Quick Docker Setup**
+```bash
+# 1️⃣ Clone and build
+git clone <repository-url> nodepuls
+cd nodepuls
+
+# 2️⃣ Start with Docker Compose
+docker-compose up -d
+
+# 3️⃣ Access at http://localhost:3020
+```
+
+#### **Manual Docker Build**
+```bash
+# Build Docker image
+docker build -t nodepuls .
+
+# Run container
+docker run -d \
+  --name nodepuls \
+  -p 3050:3050 \
+  -v $(pwd)/data:/app/server/data \
+  --restart unless-stopped \
+  nodepuls
+```
+
+#### **Docker Environment**
+```yaml
+# docker-compose.yml
+version: "3.8"
+services:
+  nodepuls:
+    build: .
+    container_name: nodepuls
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - NODE_ENV=production
+      - PORT=3020
+    volumes:
+      - ./data:/app/server/data
+```
+
+---
+
+### 🖥️ SystemD Service (Linux)
+
+#### **1️⃣ Create Service File**
+```bash
+sudo nano /etc/systemd/system/nodepuls.service
+```
+
+```ini
+[Unit]
+Description=NodePuls - Homelab Monitoring Dashboard
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=your-username
+WorkingDirectory=/path/to/nodepuls
+ExecStart=/usr/bin/node server/index.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3050
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/path/to/nodepuls/server/data
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### **2️⃣ Enable and Start Service**
+```bash
+# Reload systemd daemon
+sudo systemctl daemon-reload
+
+# Enable service to start on boot
+sudo systemctl enable nodepuls
+
+# Start the service
+sudo systemctl start nodepuls
+
+# Check service status
+sudo systemctl status nodepuls
+```
+
+#### **3️⃣ Service Management Commands**
+```bash
+# View logs
+sudo journalctl -u nodepuls -f
+
+# Stop service
+sudo systemctl stop nodepuls
+
+# Restart service
+sudo systemctl restart nodepuls
+
+# Disable service
+sudo systemctl disable nodepuls
+```
+
+---
+
+### ⚡ PM2 Process Manager
+
+#### **1️⃣ Install PM2**
+```bash
+npm install -g pm2
+```
+
+#### **2️⃣ Create PM2 Config**
+```javascript
+// ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'nodepuls',
+    script: 'server/index.js',
+    instances: 1,
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 3050
+    },
+    env_production: {
+      NODE_ENV: 'production',
+      PORT: 3050
+    }
+  }]
+};
+```
+
+#### **3️⃣ PM2 Commands**
+```bash
+# Start application
+pm2 start ecosystem.config.js
+
+# Monitor processes
+pm2 monit
+
+# View logs
+pm2 logs nodepuls
+
+# Restart application
+pm2 restart nodepuls
+
+# Stop application
+pm2 stop nodepuls
+
+# Save PM2 configuration
+pm2 save
+
+# Setup PM2 startup
+pm2 startup
+```
+
+---
+
+### 🌐 Nginx Reverse Proxy
+
+#### **Nginx Configuration**
+```nginx
+# /etc/nginx/sites-available/nodepuls
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:3050;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # WebSocket support
+    location /socket.io/ {
+        proxy_pass http://localhost:3050;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+#### **Enable Nginx Site**
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/nodepuls /etc/nginx/sites-enabled/
+
+# Test configuration
+sudo nginx -t
+
+# Reload Nginx
+sudo systemctl reload nginx
+```
+
+---
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+### 🔧 Common Issues & Solutions
 
-**1. Port Already in Use**
-```powershell
-# Check what's using the port (Windows)
+#### **🚨 Port Already in Use**
+```bash
+# 🔍 Check what's using the port
+# Windows
 netstat -ano | findstr :3050
 
-# Linux/Mac
+# Linux/macOS
+lsof -i :3050
 netstat -tulpn | grep :3050
 
-# Change ports in .env file
+# ✅ Solution: Change ports in .env
 PORT=4000
 CLIENT_PORT=4001
 ```
 
-**2. Permission Denied (Linux/Mac)**
+#### **🚫 Permission Denied (Linux/macOS)**
 ```bash
-# Use ports > 1024 or run with sudo
-PORT=3050  # Good
-PORT=80    # Requires sudo
+# ❌ Avoid running as root
+sudo npm start  # Don't do this
+
+# ✅ Use non-privileged ports (>1024)
+PORT=3050      # Good ✅
+PORT=80        # Requires sudo ❌
+
+# ✅ Or use proper permissions
+sudo setcap 'cap_net_bind_service=+ep' $(which node)
 ```
 
-**3. React App Not Loading**
+#### **⚛️ React App Not Loading**
 ```bash
-# Ensure client script is correct in package.json
-"client": "node client/start-client.js"
+# 🔍 Check if client builds successfully
+npm run build
 
-# Verify environment loading
+# 🔍 Verify environment variables
 npm run validate-env
 
-# Check if React dependencies are installed
-cd client && npm install
+# 🔍 Check React dependencies
+cd client && npm install && cd ..
+
+# 🔍 Test client standalone
+npm run client
 ```
 
-**4. Server Not Starting**
+#### **🛑 Server Won't Start**
 ```bash
-# Check for missing dependencies
+# 🔍 Check for missing dependencies
 npm install
 
-# Verify server script exists
-ls server/index.js
+# 🔍 Verify Node.js version
+node --version  # Should be 18+
 
-# Check for syntax errors
+# 🔍 Check syntax errors
 node -c server/index.js
+
+# 🔍 Check environment file
+ls -la .env
+cat .env
 ```
 
-**5. Database Issues**
+#### **🗄️ Database Issues**
 ```bash
-# Check database path exists
-ls -la server/data/homelab.db  # Linux/Mac
-dir server\data\homelab.db     # Windows
+# 🔍 Check database file
+ls -la server/data/homelab.db
 
-# Reset database (removes all data!)
-rm server/data/homelab.db      # Linux/Mac
-del server\data\homelab.db     # Windows
+# 🔍 Check database permissions
+chmod 644 server/data/homelab.db
+chmod 755 server/data/
+
+# 🧹 Reset database (⚠️ removes all data!)
+rm server/data/homelab.db
 # Restart server to recreate
 ```
 
-**6. Environment Variables Not Loading**
+#### **🌐 WebSocket Connection Issues**
 ```bash
-# Validate configuration
+# 🔍 Check browser console for errors
+# F12 → Console → Look for WebSocket errors
+
+# 🔍 Verify Socket.IO endpoint
+curl http://localhost:3050/socket.io/socket.io.js
+
+# 🔍 Check firewall settings
+sudo ufw status  # Linux
+```
+
+#### **🔧 Environment Variables Not Loading**
+```bash
+# 🔍 Validate configuration
 npm run validate-env
+
+# 🔍 Check env-loader
+node env-loader.js
+
+# 🔍 Verify .env format (no spaces around =)
+# ❌ PORT = 3050
+# ✅ PORT=3050
+```
+
+### 📊 Performance Optimization
+
+#### **🚀 Production Optimizations**
+```env
+# .env production settings
+NODE_ENV=production
+MONITOR_INTERVAL=10000        # Reduce frequency
+MAX_HISTORY_ENTRIES=50        # Reduce memory usage
+CLEANUP_INTERVAL=12           # More frequent cleanup
+```
+
+#### **💾 Memory Management**
+```bash
+# Monitor memory usage
+ps aux | grep node
+
+# Use PM2 memory limits
+pm2 start ecosystem.config.js --max-memory-restart 500M
+```
+
+### 📞 Getting Help
+
+- 📖 **Documentation**: Check this README thoroughly
+- 🐛 **Issues**: Report bugs with full error logs
+- 💡 **Feature Requests**: Suggest improvements
+- 📧 **Contact**: Said Mrini (project author)
+
+#### **📋 Bug Report Template**
+```
+**Environment:**
+- OS: [Linux/Windows/macOS]
+- Node.js version: [18.x.x]
+- NPM version: [9.x.x]
+- NodePuls version: [1.0.0]
+
+**Issue:**
+[Clear description of the problem]
+
+**Steps to Reproduce:**
+1. [First step]
+2. [Second step]
+3. [Third step]
+
+**Expected Behavior:**
+[What should happen]
+
+**Actual Behavior:**
+[What actually happens]
+
+**Logs:**
+```
+[Paste relevant logs here]
+```
+```
+
+---
 
 # Check .env file exists
 cat .env    # Linux/Mac
@@ -248,107 +697,195 @@ type .env   # Windows
 
 # Recreate environment
 npm run setup-env
-```
+## 🔐 Security & Best Practices
 
-**7. Memory/Performance Issues**
-```bash
-# Increase monitoring intervals
-MONITOR_INTERVAL=10000          # 10 seconds instead of 5
-WEBSITE_CHECK_INTERVAL="*/5 * * * *"  # 5 minutes instead of 1
-```
+### 🛡️ Security Configurations
 
-### Debug Mode
-
-Enable debug logging:
+#### **Production Security Settings**
 ```env
-LOG_LEVEL=debug
-ENABLE_DEBUG_LOGGING=true
-```
-
-## 🚀 Deployment
-
-### Ubuntu Server Installation
-
-#### 1. Prerequisites
-
-Install Node.js and npm on your Ubuntu server:
-
-```bash
-# Update package list
-sudo apt update
-
-# Install Node.js and npm (if not already installed)
-sudo apt install nodejs npm
-
-# Verify installation
-node --version
-npm --version
-```
-
-#### 2. Transfer Project Files
-
-Choose one of these methods to get your project on the server:
-
-**Option A: Using SCP (from your development machine):**
-```bash
-scp -r "path/to/ServerDasboard" username@your-server-ip:/home/username/
-```
-
-**Option B: Using Git:**
-```bash
-git clone <your-repository-url> ServerDasboard
-cd ServerDasboard
-```
-
-**Option C: Upload via SFTP/FTP client**
-
-#### 3. Install Dependencies
-
-```bash
-cd ServerDasboard
-
-# Install root dependencies
-npm install
-
-# Install client dependencies
-cd client
-npm install
-cd ..
-```
-
-#### 4. Configure Environment for Production
-
-Create or update your `.env` file for Ubuntu production:
-
-```bash
-nano .env
-```
-
-Update these key settings:
-
-```env
-# Production configuration
-PORT=3020
+# .env production security
 NODE_ENV=production
+ENABLE_HELMET=true           # Security headers
+TRUST_PROXY=false           # Behind reverse proxy
+CORS_ORIGIN=localhost       # Restrict CORS origin
+RATE_LIMIT_WINDOW=15        # Rate limiting (minutes)
+RATE_LIMIT_MAX=100          # Max requests per window
+```
 
-# Remove CLIENT_PORT for production (not needed)
-# CLIENT_PORT=3030  # Comment out or remove
+#### **Firewall Configuration**
+```bash
+# Ubuntu UFW setup
+sudo ufw allow ssh
+sudo ufw allow 3050/tcp     # NodePuls port
+sudo ufw enable
 
-# Database path (default is fine)
-DB_PATH=./server/data/homelab.db
+# CentOS/RHEL firewall
+sudo firewall-cmd --permanent --add-port=3050/tcp
+sudo firewall-cmd --reload
+```
 
-# Ubuntu-specific paths (usually default)
-PROC_PATH=/proc
-SYS_PATH=/sys
+#### **SSL/TLS with Nginx**
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
 
-# Enable temperature monitoring (works better on Linux)
-ENABLE_CPU_TEMPERATURE=true
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
-# Security settings
-ENABLE_HELMET=true
-TRUST_PROXY=false
+    location / {
+        proxy_pass http://localhost:3050;
+        # ... (rest of proxy config)
+    }
+}
 
-# Monitoring intervals
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+---
+
+## 📈 Monitoring & Maintenance
+
+### 📊 Built-in Monitoring
+
+NodePuls monitors itself and provides:
+- **System Resource Usage**: Real-time CPU, memory, disk stats
+- **Application Health**: WebSocket connections, response times
+- **Database Status**: SQLite performance and storage usage
+- **Website Uptime**: Comprehensive uptime tracking with history
+
+### 🧹 Maintenance Tasks
+
+#### **Automated Cleanup**
+```env
+# Configure automatic cleanup
+CLEANUP_INTERVAL=24         # Clean old data every 24 hours
+MAX_HISTORY_ENTRIES=100     # Keep last 100 chart points
+MAX_UPTIME_ENTRIES=1000     # Keep last 1000 uptime checks
+```
+
+#### **Manual Maintenance**
+```bash
+# Check disk usage
+df -h
+
+# Monitor NodePuls process
+ps aux | grep node
+
+# Check log files
+tail -f /var/log/syslog | grep nodepuls
+
+# Backup database
+cp server/data/homelab.db server/data/homelab.db.backup
+```
+
+#### **Database Maintenance**
+```bash
+# Check database size
+ls -lh server/data/homelab.db
+
+# Compact database (if needed)
+sqlite3 server/data/homelab.db "VACUUM;"
+
+# Check database integrity
+sqlite3 server/data/homelab.db "PRAGMA integrity_check;"
+```
+
+---
+
+## 🤝 Contributing
+
+### 👨‍💻 Development Setup
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/your-username/nodepuls.git
+cd nodepuls
+
+# Install dependencies
+npm run install:all
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+
+# Start development
+npm run dev:watch
+```
+
+### 📝 Code Standards
+
+- **TypeScript**: Use TypeScript for all React components
+- **ESLint**: Follow existing linting rules
+- **Prettier**: Format code consistently
+- **Comments**: Add JSDoc comments for functions
+- **Testing**: Include tests for new features
+
+### 🔄 Pull Request Process
+
+1. **Update Documentation**: Update README if needed
+2. **Test Changes**: Ensure all functionality works
+3. **Version Bump**: Update version in package.json if needed
+4. **Clear Description**: Explain what your PR does and why
+
+---
+
+## 📄 License
+
+MIT License - See [LICENSE](LICENSE) file for details.
+
+**Copyright © 2025 Said Mrini**
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+---
+
+## 🙏 Acknowledgments
+
+- **systeminformation** - Comprehensive system information library
+- **Socket.IO** - Real-time bidirectional event-based communication
+- **React** & **TypeScript** - Modern frontend development
+- **Express.js** - Fast, unopinionated web framework
+- **SQLite** - Embedded SQL database engine
+- **Recharts** - Composable charting library built on React components
+
+---
+
+## 📞 Support & Contact
+
+### 💬 Getting Help
+
+- 📖 **Documentation**: This comprehensive README
+- 🐛 **Bug Reports**: [GitHub Issues](issues-link)
+- 💡 **Feature Requests**: [GitHub Discussions](discussions-link)
+- 📧 **Direct Contact**: [Said Mrini](mailto:your-email@domain.com)
+
+### 🌟 Show Your Support
+
+If NodePuls helps you monitor your homelab, consider:
+- ⭐ **Starring** the repository
+- 🐛 **Reporting** bugs you find
+- 💡 **Suggesting** new features
+- 🤝 **Contributing** code improvements
+- 📢 **Sharing** with the homelab community
+
+---
+
+<div align="center">
+
+**NodePuls** - *Beautiful homelab monitoring made simple* 🚀
+
+Built with ❤️ by [Said Mrini](https://github.com/your-username)
+
+[⬆️ Back to Top](#nodepuls-)
+
+</div>
 MONITOR_INTERVAL=5000
 WEBSITE_CHECK_INTERVAL="*/1 * * * *"
 ```
@@ -376,7 +913,7 @@ Press `Ctrl+C` to stop the test server.
 Create a systemd service file:
 
 ```bash
-sudo nano /etc/systemd/system/homelab-dashboard.service
+sudo nano /etc/systemd/system/nodepuls.service
 ```
 
 Add this configuration (replace `yourusername` and adjust paths):
@@ -407,13 +944,13 @@ Enable and start the service:
 sudo systemctl daemon-reload
 
 # Enable service to start on boot
-sudo systemctl enable homelab-dashboard
+sudo systemctl enable nodepuls
 
 # Start the service
-sudo systemctl start homelab-dashboard
+sudo systemctl start nodepuls
 
 # Check service status
-sudo systemctl status homelab-dashboard
+sudo systemctl status nodepuls
 ```
 
 #### 8. Configure Firewall
@@ -600,8 +1137,8 @@ CMD ["npm", "start"]
 
 2. **Build and run:**
 ```bash
-docker build -t homelab-dashboard .
-docker run -p 3050:3050 -v $(pwd)/data:/app/server/data homelab-dashboard
+docker build -t nodepuls .
+docker run -p 3050:3050 -v $(pwd)/data:/app/server/data nodepuls
 ```
 
 ### PM2 (Process Manager)
@@ -615,7 +1152,7 @@ npm install -g pm2
 ```javascript
 module.exports = {
   apps: [{
-    name: 'homelab-dashboard',
+    name: 'nodepuls',
     script: 'server/index.js',
     instances: 1,
     autorestart: true,

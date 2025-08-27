@@ -1,11 +1,11 @@
 version: "3.8" # Consider updating to a newer Docker Compose file format version for newer features.
 
 services:
-    homelab-dashboard:
+    nodepuls:
         build:
             context: . # Explicitly define the build context
             dockerfile: Dockerfile # Explicitly define the Dockerfile path
-        container_name: homelab-dashboard
+        container_name: nodepuls
         restart: unless-stopped
         # ports removed - using host networking instead
         environment:

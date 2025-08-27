@@ -157,7 +157,7 @@ class UptimeMonitor {
 				timeout: this.checkTimeout,
 				validateStatus: (status) => status < 500,
 				headers: {
-					"User-Agent": "Homelab-Dashboard/1.0",
+					"User-Agent": "NodePuls/1.0",
 				},
 				maxRedirects: 5,
 				decompress: true,

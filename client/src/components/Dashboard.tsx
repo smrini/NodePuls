@@ -81,7 +81,9 @@ const Dashboard: React.FC<DashboardProps> = ({
 		<div className="dashboard">
 			<header className="dashboard-header">
 				<div className="header-content">
-					<h1>Homelab Dashboard</h1>
+					<div className="logo-container">
+						<img src="/nodepuls.svg" alt="NodePuls - Homelab Monitoring" className="logo" />
+					</div>
 					{systemData && (
 					<div className="uptime-info">
 						<span>

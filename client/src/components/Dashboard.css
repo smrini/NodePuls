@@ -24,6 +24,23 @@
 	margin: 0 auto;
 }
 
+/* Logo styling */
+.logo-container {
+	display: flex;
+	align-items: center;
+}
+
+.logo {
+	height: 41px;
+	width: auto;
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	transition: transform 0.2s ease-in-out;
+}
+
+.logo:hover {
+	transform: scale(1.05);
+}
+
 .dashboard-header h1 {
 	margin: 0;
 	font-size: 1.5rem;
@@ -1216,5 +1233,33 @@
 	.modal-actions .action-btn {
 		min-width: auto;
 		width: 100%;
+	}
+}
+
+/* Responsive design for logo */
+@media (max-width: 768px) {
+	.header-content {
+		flex-direction: column;
+		gap: 1rem;
+		align-items: center;
+	}
+	
+	.logo {
+		height: 40px;
+	}
+	
+	.uptime-info {
+		margin-top: 0;
+		text-align: center;
+	}
+}
+
+@media (max-width: 480px) {
+	.dashboard-header {
+		padding: 0.75rem 1rem;
+	}
+	
+	.logo {
+		height: 35px;
 	}
 }

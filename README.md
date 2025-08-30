@@ -164,6 +164,9 @@ npm run test:all    # Run tests with watch mode
 # Linux/macOS - Quick container rebuild
 chmod +x rebuild-docker.sh && ./rebuild-docker.sh
 
+# Linux/macOS - Fix network monitoring issues
+chmod +x fix-network-monitoring.sh && ./fix-network-monitoring.sh
+
 # Linux/macOS - Comprehensive troubleshooting
 chmod +x troubleshoot.sh && ./troubleshoot.sh
 
@@ -390,15 +393,13 @@ The included `docker-compose.yml` provides a complete production setup with:
 
 Key features:
 ```yaml
-ports:
-  - "3020:3020"               # Port mapping for external access
+# Host networking required for accurate system monitoring
+network_mode: host             # Essential for network interface detection
 volumes:
   - /proc:/host/proc:ro        # Host process info
   - /sys:/host/sys:ro          # Host system info
   - /dev:/dev:ro               # Device info
   - /:/hostfs:ro               # Host filesystem
-networks:
-  - default                    # Bridge network with proper isolation
 ```
 
 ---
@@ -563,15 +564,14 @@ ls -la server/data/homelab.db
 ```bash
 # 🔍 Issue: System stats show container metrics instead of host
 
-# ✅ Solution: Ensure proper volume mounts in docker-compose.yml
-ports:
-  - "3020:3020"               # Port mapping for access
+# ✅ Solution: Ensure proper volume mounts and host networking
+network_mode: host             # Required for network interface detection
 volumes:
   - /proc:/host/proc:ro
   - /sys:/host/sys:ro
   - /dev:/dev:ro
   - /:/hostfs:ro
-# Note: Bridge networking with volume mounts provides host system monitoring
+# Note: Host networking is essential for accurate network monitoring
 ```
 
 #### **🔌 WebSocket Connection Failed**
@@ -641,7 +641,7 @@ sudo docker-compose exec nodepuls ls -la server/public/index.html
 - **Reduce monitoring frequency**: Set `MONITOR_INTERVAL=10000` (10 seconds) for less CPU usage
 - **Limit chart data**: React components keep only 50 data points for smooth performance
 - **Database cleanup**: `CLEANUP_INTERVAL=24` removes old history entries automatically
-- **Docker networking**: Bridge networking with volume mounts provides good performance and isolation
+- **Docker networking**: Host networking required for accurate system and network monitoring
 
 ### 🔍 Debugging
 

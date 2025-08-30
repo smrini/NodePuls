@@ -7,8 +7,7 @@ services:
             dockerfile: Dockerfile # Explicitly define the Dockerfile path
         container_name: nodepuls
         restart: unless-stopped
-        ports:
-            - "3020:3020"  # Map host port 3020 to container port 3020
+        # ports removed - using host networking for proper system monitoring
         environment:
             # Application-specific environment variables for configuration
             # NODE_ENV should almost always be 'production' in a deployed container
@@ -51,8 +50,12 @@ services:
             - MAX_CONNECTIONS=100
 
             # System paths for Docker/Linux (used by the application to find host info)
-            - PROC_PATH=/proc
-            - SYS_PATH=/sys
+            - PROC_PATH=/host/proc
+            - SYS_PATH=/host/sys
+            
+            # Network monitoring settings
+            - ENABLE_HOST_NETWORK_MONITORING=true
+            - NETWORK_INTERFACE_DETECTION=true
 
             # Dashboard display settings
             - DASHBOARD_DOMAIN=localhost # Change to your actual domain/IP if accessed remotely
@@ -70,10 +73,9 @@ services:
             # Persistent volume for SQLite database data
             - homelab-data:/usr/src/app/server/data
 
-        # Using bridge network with port mapping instead of host network
-        # This provides better isolation while still allowing system monitoring
-        networks:
-            - default
+        # Use host network for accurate system monitoring (especially network interfaces)
+        # This is required for proper network interface detection and monitoring
+        network_mode: host
 
         # Container Security Configuration (MINIMAL PRIVILEGES)
         # Using minimal required capabilities instead of privileged mode
@@ -89,6 +91,4 @@ volumes:
     homelab-data:
         driver: local # Defines a local Docker volume for persistent data
 
-networks:
-    default:
-        driver: bridge
+# Networks section removed - using host networking

@@ -1,5 +1,6 @@
 <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
   <defs>
+    <!-- Gradient for the pulse line -->
     <linearGradient id="pulseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8" />
       <stop offset="50%" style="stop-color:#06b6d4;stop-opacity:1" />
@@ -7,6 +8,8 @@
       <animate id="gradientAnim" attributeName="x1" values="0%;20%;0%" dur="2s" repeatCount="indefinite"/>
       <animate id="gradientAnim2" attributeName="x2" values="100%;80%;100%" dur="2s" repeatCount="indefinite"/>
     </linearGradient>
+    
+    <!-- Glow effect -->
     <filter id="glow">
       <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
       <feMerge> 
@@ -16,17 +19,18 @@
     </filter>
   </defs>
   
-  <!-- Main Text, stretched to fill width -->
-  <text x="0" y="36" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#d4d2d2">
+  <!-- Text -->
+  <text x="50" y="30" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1f2937">
     Node
-    <tspan x="99" y="36" fill="url(#pulseGradient)" filter="url(#glow)">
+    <tspan x="110" y="30" fill="url(#pulseGradient)" filter="url(#glow)">
       <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>puls
     </tspan>
   </text>
   
-  <!-- Tagline, aligned at the bottom -->
-  <text x="2" y="58" font-family="Arial, sans-serif" font-size="16" fill="#6b7280" opacity="0.8">
+  <!-- Subtle tagline -->
+  <text x="51" y="42" font-family="Arial, sans-serif" font-size="8" fill="#6b7280" opacity="0.8">
     <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
     HOMELAB MONITORING
   </text>
+  
 </svg>

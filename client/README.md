@@ -14,8 +14,8 @@ React frontend for the NodePuls homelab monitoring dashboard.
 ## 🚀 Development
 
 ### Prerequisites
-- Node.js 18+
-- NPM or Yarn
+- Node.js 20+
+- NPM
 
 ### Getting Started
 
@@ -23,11 +23,17 @@ React frontend for the NodePuls homelab monitoring dashboard.
 # Install dependencies
 npm install
 
-# Start development server
-npm start
+# Start development server (from root directory)
+cd ..
+npm run dev:watch  # Starts both client and server with hot reload
+
+# Or build client only
+npm run build
 ```
 
-This will start the React development server at `http://localhost:3020`.
+**Note:** The client is integrated with the main NodePuls application. Run development commands from the root directory for the best experience.
+
+The development server will be available at `http://localhost:3020` when running the full application.
 
 ## 📦 Available Scripts
 
@@ -84,9 +90,11 @@ WebSocket connection status with visual indicators.
 The client automatically inherits configuration from the parent project's environment variables via `env-loader.js`.
 
 Key variables:
-- `REACT_APP_SERVER_PORT` - Backend server port
-- `REACT_APP_API_BASE_URL` - API endpoint URL
-- `REACT_APP_SOCKET_URL` - WebSocket server URL
+- `PORT` - Single port for both API and frontend (default: 3020)
+- `REACT_APP_API_BASE_URL` - API endpoint URL (auto-configured)
+- `REACT_APP_SOCKET_URL` - WebSocket server URL (auto-configured)
+
+**Note:** NodePuls uses a single-port design where both the React app and API are served from the same port for simplified deployment.
 
 ## 📱 Responsive Design
 

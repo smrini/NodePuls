@@ -7,12 +7,14 @@
 **A beautiful, lightweight real-time homelab monitoring dashboard**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https/)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19+-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
 *Real-time system monitoring with modern UI design and comprehensive uptime tracking*
+
+[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Deployment](#-deployment-options) • [�️ Development](#%EF%B8%8F-development) • [🐛 Troubleshooting](#-troubleshooting)
 
 </div>
 
@@ -155,6 +157,18 @@ npm run clean        # Remove build artifacts and temp files
 npm test            # Run React component tests
 npm run test:ci     # Run tests once without watch mode
 npm run test:all    # Run tests with watch mode
+```
+
+### 🐳 Docker Utility Scripts
+```bash
+# Linux/macOS - Quick container rebuild
+chmod +x rebuild-docker.sh && ./rebuild-docker.sh
+
+# Linux/macOS - Comprehensive troubleshooting
+chmod +x troubleshoot.sh && ./troubleshoot.sh
+
+# Windows PowerShell - Quick container rebuild
+.\rebuild-docker.ps1
 ```
 
 ### 🔧 Cross-Platform Improvements
@@ -376,12 +390,15 @@ The included `docker-compose.yml` provides a complete production setup with:
 
 Key features:
 ```yaml
+ports:
+  - "3020:3020"               # Port mapping for external access
 volumes:
   - /proc:/host/proc:ro        # Host process info
   - /sys:/host/sys:ro          # Host system info
   - /dev:/dev:ro               # Device info
   - /:/hostfs:ro               # Host filesystem
-network_mode: host             # Required for network monitoring
+networks:
+  - default                    # Bridge network with proper isolation
 ```
 
 ---
@@ -547,12 +564,14 @@ ls -la server/data/homelab.db
 # 🔍 Issue: System stats show container metrics instead of host
 
 # ✅ Solution: Ensure proper volume mounts in docker-compose.yml
+ports:
+  - "3020:3020"               # Port mapping for access
 volumes:
   - /proc:/host/proc:ro
   - /sys:/host/sys:ro
   - /dev:/dev:ro
   - /:/hostfs:ro
-network_mode: host  # Required for accurate network monitoring
+# Note: Bridge networking with volume mounts provides host system monitoring
 ```
 
 #### **🔌 WebSocket Connection Failed**
@@ -581,12 +600,48 @@ apt-get install python3 make g++
 xcode-select --install
 ```
 
+#### **🐳 Docker Build Failures (Python distutils)**
+```bash
+# 🔍 Issue: Docker build fails with "ModuleNotFoundError: No module named 'distutils'"
+
+# ✅ Solution: The Dockerfile has been updated to include python3-dev and py3-setuptools
+# Simply rebuild with no cache:
+sudo docker-compose build --no-cache
+
+# 🔧 Quick rebuild script (Linux/macOS):
+chmod +x rebuild-docker.sh
+./rebuild-docker.sh
+
+# 🔍 If still failing, check Alpine Linux version compatibility
+docker --version
+```
+
+#### **🔧 Docker Container Troubleshooting**
+```bash
+# 🛠️ Use the troubleshooting script:
+chmod +x troubleshoot.sh
+./troubleshoot.sh
+
+# 🔍 Manual troubleshooting steps:
+# Check container status
+sudo docker-compose ps
+
+# View container logs
+sudo docker-compose logs -f
+
+# Test API endpoint
+curl http://localhost:3020/api/health
+
+# Check if React build exists in container
+sudo docker-compose exec nodepuls ls -la server/public/index.html
+```
+
 ### 📊 Performance Optimization
 
 - **Reduce monitoring frequency**: Set `MONITOR_INTERVAL=10000` (10 seconds) for less CPU usage
 - **Limit chart data**: React components keep only 50 data points for smooth performance
 - **Database cleanup**: `CLEANUP_INTERVAL=24` removes old history entries automatically
-- **Docker networking**: Use `network_mode: host` for better performance in Docker
+- **Docker networking**: Bridge networking with volume mounts provides good performance and isolation
 
 ### 🔍 Debugging
 

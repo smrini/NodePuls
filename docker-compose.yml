@@ -7,7 +7,8 @@ services:
             dockerfile: Dockerfile # Explicitly define the Dockerfile path
         container_name: nodepuls
         restart: unless-stopped
-        # ports removed - using host networking instead
+        ports:
+            - "3020:3020"  # Map host port 3020 to container port 3020
         environment:
             # Application-specific environment variables for configuration
             # NODE_ENV should almost always be 'production' in a deployed container
@@ -15,7 +16,8 @@ services:
             - PORT=3020
             # CLIENT_PORT removed - using single port setup
             - DB_PATH=/usr/src/app/server/data/homelab.db
-            # CORS_ORIGIN will be auto-generated from PORT for single port setup
+            # Allow CORS from any origin for Docker deployment (modify as needed for security)
+            - CORS_ORIGIN=*
 
             # Monitoring settings
             - MONITOR_INTERVAL=5000
@@ -68,8 +70,10 @@ services:
             # Persistent volume for SQLite database data
             - homelab-data:/usr/src/app/server/data
 
-        # Use host network for better network monitoring
-        network_mode: host
+        # Using bridge network with port mapping instead of host network
+        # This provides better isolation while still allowing system monitoring
+        networks:
+            - default
 
         # Container Security Configuration (MINIMAL PRIVILEGES)
         # Using minimal required capabilities instead of privileged mode
@@ -85,4 +89,6 @@ volumes:
     homelab-data:
         driver: local # Defines a local Docker volume for persistent data
 
-# Remove networks section since we're using host networking
+networks:
+    default:
+        driver: bridge

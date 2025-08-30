@@ -24,9 +24,12 @@ console.log(`🔍 DEBUG - Server Port: ${process.env.PORT || 3020}`);
 console.log(`🔍 DEBUG - Config CORS Origin: ${corsOrigin}`);
 console.log(`Server allowing CORS from: ${corsOrigin}`);
 
+// Handle wildcard CORS for Docker deployments
+const corsSettings = corsOrigin === '*' ? true : corsOrigin;
+
 const io = socketIo(server, {
 	cors: {
-		origin: corsOrigin,
+		origin: corsSettings,
 		methods: ["GET", "POST"],
 		credentials: true,
 	},
@@ -34,20 +37,12 @@ const io = socketIo(server, {
 
 // Middleware
 app.use(helmet({
-	contentSecurityPolicy: {
-		directives: {
-			defaultSrc: ["'self'"],
-			scriptSrc: ["'self'", "'unsafe-inline'"],
-			styleSrc: ["'self'", "'unsafe-inline'"],
-			imgSrc: ["'self'", "data:", "https:"],
-			connectSrc: ["'self'", "ws:", "wss:"],
-		},
-	},
+	contentSecurityPolicy: false,  // Temporarily disable CSP for troubleshooting
 }));
 app.use(compression());
 app.use(
 	cors({
-		origin: corsOrigin,
+		origin: corsSettings,
 		credentials: true,
 	})
 );

@@ -7,9 +7,8 @@ WORKDIR /usr/src/app
 
 # Install build dependencies required for native Node.js modules (like sqlite3)
 # --no-cache: reduces image size by not caching package indexes.
-# Add git for specific npm/yarn dependencies if needed, otherwise omit.
-# You already have python3, make, g++ which are correct for node-gyp.
-RUN apk add --no-cache python3 make g++ git
+# python3-dev and py3-setuptools are needed for distutils and node-gyp
+RUN apk add --no-cache python3 python3-dev py3-setuptools make g++ git
 
 # Copy root package.json and package-lock.json first to leverage Docker layer caching.
 # This step only invalidates if package.json or package-lock.json changes.
@@ -45,7 +44,7 @@ RUN echo "=== Copied Index.html size and content ===" && wc -c server/public/ind
 
 # Clean up build-time dependencies to reduce image size for the builder stage
 # This will not affect the final production image, but it's good practice for intermediate layers.
-RUN apk del python3 make g++ git
+RUN apk del python3-dev py3-setuptools make g++ git
 
 # --- Stage 2: Production image ---
 # Use a lighter Node.js base image for production if possible, or stick to alpine.
@@ -55,10 +54,9 @@ FROM node:20-alpine AS production
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Install runtime dependencies for health check (wget)
-# You correctly identified wget for the healthcheck.
-# If your application needs other specific runtime tools, add them here.
-RUN apk add --no-cache wget
+# Install runtime dependencies for health check (wget) and build dependencies for sqlite3
+# python3-dev and py3-setuptools are needed for distutils and node-gyp
+RUN apk add --no-cache wget python3 python3-dev py3-setuptools make g++
 
 # Copy only the necessary package.json files for production dependencies
 # This is generally from the root package.json, as client build is already done.
@@ -72,10 +70,10 @@ COPY package*.json ./
 # Your current solution (installing build tools in both stages) addresses this.
 RUN npm ci --only=production && npm cache clean --force
 
-# Remove build tools from the production image after npm ci, if they were installed.
-# This significantly reduces the final image size.
-# Use '|| true' to ignore errors if packages were not installed (e.g., if prebuilds were used)
-RUN apk del python3 make g++ || true
+# Remove build tools from the production image after npm ci
+# This significantly reduces the final image size
+# Keep wget for health checks, but remove build dependencies
+RUN apk del python3-dev py3-setuptools make g++ || true
 
 # Copy server code, configuration, and environment files
 COPY server/ ./server/

@@ -116,7 +116,9 @@ const Dashboard: React.FC<DashboardProps> = ({
 
 					<section className="websites-section">
 						<h2>Website Monitoring</h2>
-						<WebsiteMonitor websites={websites} socket={socket} />
+						<div className="websites-content">
+							<WebsiteMonitor websites={websites} socket={socket} />
+						</div>
 					</section>
 				</div>
 			</main>

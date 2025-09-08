@@ -25,8 +25,59 @@ const ResourceCharts: React.FC<ResourceChartsProps> = ({ data, selectedNetworkIn
 		);
 	}
 
+	// Helper function to format network speed adaptively
+	const formatNetworkSpeed = (mbps: number): string => {
+		const bytesPerSec = mbps * 1024 * 1024; // Convert MB/s back to bytes/s
+		
+		if (bytesPerSec >= 1024 * 1024) {
+			// >= 1 MB/s: show in MB/s
+			return `${mbps.toFixed(2)} MB/s`;
+		} else if (bytesPerSec >= 1024) {
+			// >= 1 KB/s: show in KB/s
+			const kbps = bytesPerSec / 1024;
+			return `${kbps.toFixed(1)} KB/s`;
+		} else {
+			// < 1 KB/s: show in B/s
+			return `${bytesPerSec.toFixed(0)} B/s`;
+		}
+	};
+
+	// Find the maximum network speed in the current data to determine the best unit for Y-axis
+	const getOptimalNetworkUnit = () => {
+		if (data.length === 0) return { unit: 'MB/s', multiplier: 1, decimals: 2 };
+		
+		const maxSpeed = Math.max(
+			...data.map(d => Math.max(d.network_rx, d.network_tx))
+		);
+		
+		// Convert back to bytes/s to determine unit
+		const maxBytesPerSec = maxSpeed * 1024 * 1024;
+		
+		if (maxBytesPerSec >= 1024 * 1024) {
+			// Use MB/s (data is already in MB/s)
+			return { unit: 'MB/s', multiplier: 1, decimals: 2 };
+		} else if (maxBytesPerSec >= 1024) {
+			// Use KB/s (convert MB/s to KB/s: multiply by 1024)
+			return { unit: 'KB/s', multiplier: 1024, decimals: 1 };
+		} else {
+			// Use B/s (convert MB/s to B/s: multiply by 1024*1024)
+			return { unit: 'B/s', multiplier: 1024 * 1024, decimals: 0 };
+		}
+	};
+
+	const networkUnit = getOptimalNetworkUnit();
+
 	const formatYAxis = (value: number) => `${value.toFixed(1)}%`;
-	const formatNetworkYAxis = (value: number) => `${value.toFixed(2)} MB/s`;
+	const formatNetworkYAxis = (value: number) => {
+		return `${value.toFixed(networkUnit.decimals)} ${networkUnit.unit}`;
+	};
+
+	// Transform data for optimal unit display
+	const transformedData = data.map(point => ({
+		...point,
+		network_rx_display: point.network_rx * networkUnit.multiplier,
+		network_tx_display: point.network_tx * networkUnit.multiplier,
+	}));
 
 	return (
 		<div className="resource-charts">
@@ -85,7 +136,7 @@ const ResourceCharts: React.FC<ResourceChartsProps> = ({ data, selectedNetworkIn
 					)}
 				</h3>
 				<ResponsiveContainer width="100%" height={215}>
-					<LineChart data={data}>
+					<LineChart data={transformedData}>
 						<CartesianGrid strokeDasharray="3 3" stroke="#374151" />
 						<XAxis dataKey="time" stroke="#9CA3AF" fontSize={12} />
 						<YAxis
@@ -100,15 +151,19 @@ const ResourceCharts: React.FC<ResourceChartsProps> = ({ data, selectedNetworkIn
 								borderRadius: "6px",
 								color: "#F9FAFB",
 							}}
-							formatter={(value: number, name: string) => [
-								`${value.toFixed(2)} MB/s`,
-								name === "Download" ? "Download" : "Upload",
-							]}
+							formatter={(value: number, name: string) => {
+								// Convert the displayed value back to original MB/s value for formatting
+								const originalMbps = value / networkUnit.multiplier;
+								return [
+									formatNetworkSpeed(originalMbps),
+									name === "Download" ? "Download" : "Upload",
+								];
+							}}
 						/>
 						<Legend />
 						<Line
 							type="monotone"
-							dataKey="network_rx"
+							dataKey="network_rx_display"
 							stroke="#F59E0B"
 							strokeWidth={2}
 							dot={false}
@@ -116,7 +171,7 @@ const ResourceCharts: React.FC<ResourceChartsProps> = ({ data, selectedNetworkIn
 						/>
 						<Line
 							type="monotone"
-							dataKey="network_tx"
+							dataKey="network_tx_display"
 							stroke="#EF4444"
 							strokeWidth={2}
 							dot={false}

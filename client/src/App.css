@@ -1,6 +1,32 @@
 /* App.css - Main application styles */
 * {
 	box-sizing: border-box;
+	/* Remove blue outline/focus rings on mobile devices */
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+/* Allow text selection for specific elements where needed */
+input, textarea, [contenteditable] {
+	-webkit-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
+	user-select: text;
+}
+
+/* Remove focus outlines globally but maintain accessibility */
+*:focus {
+	outline: none;
+}
+
+/* Remove tap highlights on buttons and interactive elements */
+button, a, .clickable, [role="button"] {
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
 }
 
 body {

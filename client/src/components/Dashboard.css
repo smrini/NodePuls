@@ -5,6 +5,30 @@
 	color: #f8fafc;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
 		sans-serif;
+	/* Remove mobile tap highlights */
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Remove blue outlines from all interactive elements */
+.dashboard button,
+.dashboard input,
+.dashboard select,
+.dashboard textarea,
+.dashboard [role="button"],
+.dashboard .clickable,
+.dashboard a {
+	-webkit-tap-highlight-color: transparent;
+	-webkit-touch-callout: none;
+	outline: none;
+}
+
+/* Ensure focus is still visible for accessibility but without blue outline */
+.dashboard button:focus,
+.dashboard input:focus,
+.dashboard select:focus,
+.dashboard textarea:focus {
+	outline: none;
+	box-shadow: none;
 }
 
 .dashboard-header {
@@ -77,22 +101,35 @@
 .charts-section {
 	grid-column: 1;
 	grid-row: 2;
+	z-index: 10000;
 }
 
 .websites-section {
 	grid-column: 2;
 	grid-row: 1 / -1;
+	z-index: 10000;
 }
 
 /* Sections */
 .stats-section,
-.charts-section,
-.websites-section {
+.charts-section {
 	background: rgba(30, 41, 59, 0.6);
 	backdrop-filter: blur(10px);
 	border: 1px solid #334155;
 	border-radius: 12px;
 	padding: 1.5rem;
+}
+
+.websites-section {
+	background: rgba(30, 41, 59, 0.6);
+	backdrop-filter: blur(10px);
+	border: 1px solid #334155;
+	border-radius: 12px;
+	padding: 1.5rem .5rem 1.5rem 1.5rem;
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 9rem);
+	overflow: hidden;
 }
 
 .stats-section h2,
@@ -104,6 +141,39 @@
 	color: #e2e8f0;
 	border-bottom: 2px solid #3b82f6;
 	padding-bottom: 0.5rem;
+	flex-shrink: 0;
+}
+.websites-content {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.website-monitor {
+	margin-right: 1rem;
+}
+
+.websites-content::-webkit-scrollbar {
+	width: 8px;
+}
+
+.websites-content::-webkit-scrollbar-track {
+	background: rgba(30, 41, 59, 0.4);
+	border-radius: 4px;
+}
+
+.websites-content::-webkit-scrollbar-thumb {
+	background: rgba(59, 130, 246, 0.6);
+	border-radius: 4px;
+	transition: background-color 0.2s ease;
+}
+
+.websites-content::-webkit-scrollbar-thumb:hover {
+	background: rgba(59, 130, 246, 0.8);
+}
+
+.websites-content::-webkit-scrollbar-thumb:active {
+	background: rgba(37, 99, 235, 0.9);
 }
 
 /* Connection Status */
@@ -217,8 +287,11 @@
 }
 
 .dropdown-toggle:focus {
-	outline: 2px solid #3b82f6;
-	outline-offset: 2px;
+	outline: none;
+	box-shadow: none;
+	background: rgba(59, 130, 246, 0.1);
+	border-color: #3b82f6;
+	color: #3b82f6;
 }
 
 .dropdown-toggle svg {
@@ -374,6 +447,15 @@
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: 2rem;
+}
+
+/* Recharts X-Axis Spacing */
+.recharts-cartesian-axis.recharts-xAxis .recharts-cartesian-axis-tick-value {
+	transform: translateY(8px);
+}
+
+.recharts-cartesian-axis.recharts-xAxis .recharts-cartesian-axis-tick-line {
+	transform: translateY(4px);
 }
 
 .chart-container h3 {
@@ -575,7 +657,7 @@
 
 .details-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: 1fr 1.85fr;
 	gap: 0.75rem;
 	margin-bottom: 1rem;
 }
@@ -879,7 +961,7 @@
 	height: 120px;
 	background: rgba(15, 23, 42, 0.5);
 	border-radius: 6px;
-	padding: 1rem;
+	padding: 1rem 1rem 2rem 1rem;
 	overflow: hidden;
 	position: relative;
 }
@@ -1029,9 +1111,7 @@
 /* Responsive Design for Dropdowns */
 @media (max-width: 768px) {
 	.dropdown-menu {
-		right: -10px;
-		left: -10px;
-		min-width: auto;
+		min-width: 12rem;
 	}
 	
 	.stat-dropdown {
@@ -1055,10 +1135,33 @@
 	}
 	
 	.stats-section,
-	.charts-section,
+	.charts-section {
+		grid-column: 1;
+		grid-row: auto;
+	}
+	
 	.websites-section {
 		grid-column: 1;
 		grid-row: auto;
+		max-height: none;
+		padding: 1rem;
+	}
+	
+	/* Hide scrollbar on mobile devices */
+	.websites-content::-webkit-scrollbar {
+		display: none;
+		width: 0;
+	}
+	
+	/* For Firefox on mobile */
+	.websites-content {
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+
+	/* Remove right margin on website monitors for better fit */
+	.website-monitor {
+		margin-right: 0;
 	}
 }
 
@@ -1077,8 +1180,11 @@
 
 /* Enhance dropdown visual feedback */
 .dropdown-toggle:focus {
-	outline: 2px solid #3b82f6;
-	outline-offset: 2px;
+	outline: none;
+	box-shadow: none;
+	background: rgba(59, 130, 246, 0.1);
+	border-color: #3b82f6;
+	color: #3b82f6;
 }
 
 .dropdown-item:focus {
@@ -1192,7 +1298,7 @@
 .form-group input:focus {
 	outline: none;
 	border-color: #3b82f6;
-	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	box-shadow: none;
 }
 
 .form-group input:hover {
@@ -1252,6 +1358,26 @@
 		margin-top: 0;
 		text-align: center;
 	}
+	
+	/* Ensure scrollbar is completely hidden on mobile phones */
+	.websites-content {
+		scrollbar-width: none !important;
+		-ms-overflow-style: none !important;
+	}
+	
+	.websites-content::-webkit-scrollbar {
+		display: none !important;
+		width: 0 !important;
+		background: transparent !important;
+	}
+	
+	.websites-content::-webkit-scrollbar-track {
+		display: none !important;
+	}
+	
+	.websites-content::-webkit-scrollbar-thumb {
+		display: none !important;
+	}
 }
 
 @media (max-width: 480px) {
@@ -1261,5 +1387,18 @@
 	
 	.logo {
 		height: 35px;
+	}
+	
+	/* Force hide scrollbar on small mobile screens */
+	.websites-content {
+		scrollbar-width: none !important;
+		-ms-overflow-style: none !important;
+		overflow: -moz-scrollbars-none !important;
+	}
+	
+	.websites-content::-webkit-scrollbar {
+		display: none !important;
+		width: 0 !important;
+		height: 0 !important;
 	}
 }

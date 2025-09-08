@@ -454,10 +454,6 @@
 	transform: translateY(8px);
 }
 
-.recharts-cartesian-axis.recharts-xAxis .recharts-cartesian-axis-tick-line {
-	transform: translateY(4px);
-}
-
 .chart-container h3 {
 	margin: 0 0 1rem 0;
 	font-size: 1rem;

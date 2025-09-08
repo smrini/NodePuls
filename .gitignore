@@ -9,10 +9,10 @@ yarn-error.log*
 # .env files are intentionally tracked for easier deployment
 # .env.example files serve as documentation
 
-# Database files
-server/data/homelab.db
+# Database files (excluding sample homelab.db)
 server/data/homelab.db.backup
 server/data/*.db
+!server/data/homelab.db
 server/data/*.sqlite
 server/data/*.sqlite3
 

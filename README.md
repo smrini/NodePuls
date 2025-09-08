@@ -57,6 +57,8 @@ cd ServerDasboard
 npm run install:all
 ```
 
+**📝 Note**: The repository includes a sample `homelab.db` with example websites for immediate testing. This contains no sensitive data and helps new users get started quickly. Example sites include Google, Nextcloud, Home Assistant, and other common homelab services.
+
 ### 2️⃣ Development
 
 ```bash
@@ -351,6 +353,7 @@ ServerDasboard/
 │   │   ├── 📊 systemMonitor.js      # System metrics collection
 │   │   └── 🌐 uptimeMonitor.js      # Website monitoring & analytics
 │   ├── 📁 data/                 # SQLite database storage
+│   │   └── 🗄️ homelab.db            # Sample database with example websites
 │   ├── 📁 public/               # Built React app (production)
 │   └── 🚀 index.js              # Express server entry point
 ├── � scripts/                  # Build and utility scripts

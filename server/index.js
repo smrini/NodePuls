@@ -125,8 +125,42 @@ app.delete("/api/websites/:id", async (req, res) => {
 });
 
 // Socket.IO connection handling
+let connectedClients = 0;
+let systemMonitoringInterval = null;
+
+const startSystemMonitoring = () => {
+	if (systemMonitoringInterval) {
+		clearInterval(systemMonitoringInterval);
+	}
+	
+	console.log("🔄 Starting system monitoring (client connected)");
+	systemMonitoringInterval = setInterval(async () => {
+		try {
+			const systemInfo = await systemMonitor.getSystemInfo();
+			io.emit("systemUpdate", systemInfo);
+		} catch (error) {
+			console.error("System monitoring error:", error);
+		}
+	}, config.monitoring.interval);
+};
+
+const stopSystemMonitoring = () => {
+	if (systemMonitoringInterval) {
+		clearInterval(systemMonitoringInterval);
+		systemMonitoringInterval = null;
+		console.log("⏸️ Stopped system monitoring (no clients connected)");
+	}
+};
+
 io.on("connection", async (socket) => {
 	console.log("Client connected:", socket.id);
+	connectedClients++;
+	console.log(`📊 Active clients: ${connectedClients}`);
+	
+	// Start system monitoring when first client connects
+	if (connectedClients === 1) {
+		startSystemMonitoring();
+	}
 
 	// Send initial data
 	try {
@@ -215,22 +249,19 @@ io.on("connection", async (socket) => {
 
 	socket.on("disconnect", () => {
 		console.log("Client disconnected:", socket.id);
+		connectedClients--;
+		console.log(`📊 Active clients: ${connectedClients}`);
+		
+		// Stop system monitoring when last client disconnects
+		if (connectedClients === 0) {
+			stopSystemMonitoring();
+		}
 	});
 });
 
-// Real-time system monitoring
-const startSystemMonitoring = () => {
-	setInterval(async () => {
-		try {
-			const systemInfo = await systemMonitor.getSystemInfo();
-			io.emit("systemUpdate", systemInfo);
-		} catch (error) {
-			console.error("System monitoring error:", error);
-		}
-	}, config.monitoring.interval);
-};
+// Real-time system monitoring functions are defined above with client connection handling
 
-// Schedule website uptime checks
+// Schedule website uptime checks (always running regardless of client connections)
 cron.schedule("*/1 * * * *", async () => {
 	console.log("Running scheduled uptime check...");
 	await uptimeMonitor.checkAllWebsites();
@@ -275,11 +306,14 @@ const startServer = async () => {
 				`🚀 Homelab Dashboard running on port ${config.server.port}`
 			);
 			console.log(
-				`📊 System monitoring interval: ${config.monitoring.interval}ms`
+				`📊 System monitoring will start when clients connect (interval: ${config.monitoring.interval}ms)`
+			);
+			console.log(
+				`🌐 Website uptime monitoring running continuously every minute`
 			);
 
-			// Start monitoring
-			startSystemMonitoring();
+			// System monitoring will start automatically when first client connects
+			// Website uptime monitoring runs continuously via cron job
 
 			// Initial website check on startup
 			console.log("Performing initial website check...");

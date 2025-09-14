@@ -482,6 +482,50 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 		}
 	};
 
+	// Helper function to calculate dynamic chart properties
+	const calculateChartProperties = (historyData: any[]) => {
+		const responseTimes = historyData
+			.filter(point => point.status !== "down" && point.responseTime > 0)
+			.map(point => point.responseTime);
+		
+		if (responseTimes.length === 0) {
+			return {
+				maxValue: 1000,
+				goodThreshold: 200,
+				okThreshold: 500,
+				scale: (value: number) => Math.min(90, (value / 1000) * 85)
+			};
+		}
+		
+		const minTime = Math.min(...responseTimes);
+		const maxTime = Math.max(...responseTimes);
+		const avgTime = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
+		
+		// Calculate dynamic thresholds based on actual data
+		const goodThreshold = Math.max(100, avgTime * 0.7); // 70% of average, min 100ms
+		const okThreshold = Math.max(200, avgTime * 1.5);   // 150% of average, min 200ms
+		
+		// Dynamic scaling based on data range
+		const chartMax = Math.max(maxTime * 1.1, okThreshold * 1.2); // 10% above max or 120% of ok threshold
+		
+		return {
+			maxValue: chartMax,
+			goodThreshold,
+			okThreshold,
+			minTime,
+			maxTime,
+			avgTime,
+			scale: (value: number) => {
+				if (value === 0) return 5; // Minimum height for zero values
+				
+				// Ensure minimum 10% height for very small values
+				const minHeight = 10;
+				const scaledHeight = (value / chartMax) * 80 + minHeight;
+				return Math.min(90, scaledHeight);
+			}
+		};
+	};
+
 	return (
 		<DndProvider backend={HTML5Backend}>
 			<div className="website-monitor">
@@ -609,56 +653,64 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 								<div className="analytics-charts">
 									<div className="chart-section">
 										<h4>Response Time</h4>
-										<div className="simple-chart">
-											{generateHistoryFromWebsite(
-												currentAnalyticsWebsite
-											).map(
-												(point: any, index: number) => (
-													<div
-														key={index}
-														className="chart-bar"
-														style={{
-															height: `${
-																point.status ===
-																	"down" ||
-																point.responseTime ===
-																	0
-																	? 5 // Show a small bar for down status
-																	: Math.min(
-																			90,
-																			(point.responseTime /
-																				700) *
-																				85
-																	  )
-															}%`,
-															backgroundColor:
-																point.status ===
-																	"down" ||
-																point.responseTime ===
-																	0
-																	? "#ef4444" // Red for down/0ms
-																	: point.responseTime >
-																	  500
-																	? "#ef4444" // Red for slow (>500ms)
-																	: point.responseTime >
-																	  250
-																	? "#f59e0b" // Orange for medium (250-500ms)
-																	: "#22c55e", // Green for fast (<250ms)
-														}}
-														title={`${
-															point.time
-														}: ${
-															point.status ===
-															"down"
-																? "DOWN"
-																: `${point.responseTime.toFixed(
-																		0
-																  )}ms`
-														}`}
-													/>
-												)
-											)}
-										</div>
+										{(() => {
+											const historyData = generateHistoryFromWebsite(currentAnalyticsWebsite);
+											const chartProps = calculateChartProperties(historyData);
+											
+											return (
+												<>
+													<div className="chart-legend" style={{
+														fontSize: '11px',
+														marginBottom: '8px',
+														color: '#666',
+														display: 'flex',
+														gap: '12px',
+														flexWrap: 'wrap'
+													}}>
+														<span style={{ color: '#22c55e' }}>
+															● Fast ≤{Math.round(chartProps.goodThreshold)}ms
+														</span>
+														<span style={{ color: '#f59e0b' }}>
+															● OK ≤{Math.round(chartProps.okThreshold)}ms
+														</span>
+														<span style={{ color: '#ef4444' }}>
+															● Slow &gt;{Math.round(chartProps.okThreshold)}ms
+														</span>
+													</div>
+													<div className="simple-chart">
+														{historyData.map((point: any, index: number) => (
+															<div
+																key={index}
+																className="chart-bar"
+																style={{
+																	height: `${
+																		point.status === "down" || point.responseTime === 0
+																			? 5 // Show a small bar for down status
+																			: chartProps.scale(point.responseTime)
+																	}%`,
+																	backgroundColor:
+																		point.status === "down" || point.responseTime === 0
+																			? "#ef4444" // Red for down/0ms
+																			: point.responseTime <= chartProps.goodThreshold
+																			? "#22c55e" // Green for fast response
+																			: point.responseTime <= chartProps.okThreshold
+																			? "#f59e0b" // Orange for medium response
+																			: "#ef4444", // Red for slow response
+																}}
+																title={`${point.time}: ${
+																	point.status === "down"
+																		? "DOWN"
+																		: `${point.responseTime.toFixed(0)}ms${
+																			point.responseTime <= chartProps.goodThreshold ? " (Fast)" :
+																			point.responseTime <= chartProps.okThreshold ? " (OK)" : " (Slow)"
+																		}`
+																}`}
+															/>
+														))}
+													</div>
+												</>
+											);
+										})()}
 									</div>
 
 									<div className="chart-section">

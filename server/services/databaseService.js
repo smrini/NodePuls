@@ -103,6 +103,53 @@ class DatabaseService {
 									"✅ Added up_since column to websites table"
 								);
 							}
+							
+							// Add health tracking columns (migration)
+							this.db.run(
+								"ALTER TABLE websites ADD COLUMN health_score INTEGER DEFAULT 100",
+								(err) => {
+									if (
+										err &&
+										!err.message.includes("duplicate column")
+									) {
+										console.error(
+											"❌ Error adding health_score column:",
+											err.message
+										);
+									}
+								}
+							);
+							
+							this.db.run(
+								"ALTER TABLE websites ADD COLUMN consecutive_failures INTEGER DEFAULT 0",
+								(err) => {
+									if (
+										err &&
+										!err.message.includes("duplicate column")
+									) {
+										console.error(
+											"❌ Error adding consecutive_failures column:",
+											err.message
+										);
+									}
+								}
+							);
+							
+							this.db.run(
+								"ALTER TABLE websites ADD COLUMN last_successful_check TEXT",
+								(err) => {
+									if (
+										err &&
+										!err.message.includes("duplicate column")
+									) {
+										console.error(
+											"❌ Error adding last_successful_check column:",
+											err.message
+										);
+									}
+								}
+							);
+							
 							tablesCreated++;
 							if (tablesCreated === totalTables) {
 								resolve();
@@ -168,7 +215,8 @@ class DatabaseService {
 			const query = `
                 UPDATE websites 
                 SET name = ?, url = ?, status = ?, response_time = ?, last_check = ?, up_since = ?,
-                    uptime = ?, checks = ?, successful_checks = ?, updated_at = CURRENT_TIMESTAMP
+                    uptime = ?, checks = ?, successful_checks = ?, health_score = ?, 
+                    consecutive_failures = ?, last_successful_check = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             `;
 
@@ -184,6 +232,9 @@ class DatabaseService {
 					website.uptime,
 					website.checks,
 					website.successfulChecks,
+					website.healthScore || 100,
+					website.consecutiveFailures || 0,
+					website.lastSuccessfulCheck,
 					website.id,
 				],
 				function (err) {

@@ -146,16 +146,14 @@ class UptimeMonitor {
 		});
 	}
 
-	async checkWebsite(website) {
-		// First measure just TCP connection time (similar to ping)
-		const tcpTime = await this.measureTcpConnectTime(website.url);
-
+	// Perform a single HTTP check attempt
+	async performSingleCheck(website, method = 'GET', attempt = 1) {
 		const startTime = process.hrtime.bigint();
-
+		
 		try {
-			const response = await axios.get(website.url, {
-				timeout: this.checkTimeout || 10000, // Increased timeout to 10 seconds
-				validateStatus: (status) => status < 500, // Accept redirects and client errors as "up"
+			const axiosConfig = {
+				timeout: this.checkTimeout || 10000,
+				validateStatus: (status) => status < 500,
 				headers: {
 					"User-Agent": "Mozilla/5.0 (compatible; NodePuls/1.0; +monitoring-bot)",
 					"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -164,155 +162,204 @@ class UptimeMonitor {
 					"Connection": "keep-alive",
 					"Cache-Control": "no-cache",
 				},
-				maxRedirects: 10, // Increased redirect limit
+				maxRedirects: 10,
 				decompress: true,
-				// Follow redirects and handle HTTPS properly
 				httpsAgent: new (require('https').Agent)({
-					rejectUnauthorized: false, // Accept self-signed certificates
+					rejectUnauthorized: false,
 					timeout: 10000
 				}),
-				// Handle HTTP properly
 				httpAgent: new (require('http').Agent)({
 					timeout: 10000,
 					keepAlive: true
 				})
-			});
+			};
+
+			const response = method === 'HEAD' 
+				? await axios.head(website.url, axiosConfig)
+				: await axios.get(website.url, axiosConfig);
 
 			const endTime = process.hrtime.bigint();
-			const httpResponseTime = Math.round(
-				Number(endTime - startTime) / 1000000
-			);
+			const responseTime = Math.round(Number(endTime - startTime) / 1000000);
 			
-			// More lenient status checking - consider 2xx, 3xx as up
-			// Even some 4xx codes (like 403, 401) indicate the server is responding
 			const isUp = response.status >= 200 && response.status < 500;
+			
+			return {
+				success: isUp,
+				responseTime,
+				status: response.status,
+				method,
+				attempt,
+				error: null
+			};
+		} catch (error) {
+			const endTime = process.hrtime.bigint();
+			const responseTime = Math.round(Number(endTime - startTime) / 1000000);
+			
+			return {
+				success: false,
+				responseTime,
+				status: null,
+				method,
+				attempt,
+				error: error.message
+			};
+		}
+	}
 
-			website.status = isUp ? "up" : "down";
-			// Use TCP connection time if available (more accurate for uptime monitoring)
-			// Fall back to HTTP response time if TCP measurement failed
-			website.responseTime =
-				tcpTime !== null ? tcpTime : httpResponseTime;
-			website.lastCheck = new Date().toISOString();
-			website.checks++;
+	initializeWebsiteHealth(website) {
+		if (!website.healthScore) {
+			website.healthScore = 100; // Start with perfect health
+		}
+		if (!website.consecutiveFailures) {
+			website.consecutiveFailures = 0;
+		}
+		if (!website.lastSuccessfulCheck) {
+			website.lastSuccessfulCheck = null;
+		}
+	}
 
-			if (isUp) {
-				website.successfulChecks++;
-				// Track the first time the site was detected as up
-				if (!website.upSince) {
-					website.upSince = new Date().toISOString();
-				}
+	updateWebsiteHealth(website, checkResult) {
+		this.initializeWebsiteHealth(website);
+		
+		if (checkResult.success) {
+			// Successful check - improve health score
+			website.healthScore = Math.min(100, website.healthScore + 10);
+			website.consecutiveFailures = 0;
+			website.lastSuccessfulCheck = website.lastCheck;
+		} else {
+			// Failed check - reduce health score
+			website.consecutiveFailures++;
+			website.healthScore = Math.max(0, website.healthScore - 15);
+		}
+		
+		// Determine status based on health score and consecutive failures
+		// More resilient: only mark as down after multiple failures or very low health
+		const shouldBeDown = (
+			website.healthScore <= 30 && website.consecutiveFailures >= 2
+		) || website.consecutiveFailures >= 3;
+		
+		// Override the binary status with health-based status
+		if (!shouldBeDown && website.healthScore > 30) {
+			website.status = "up";
+		} else {
+			website.status = "down";
+		}
+		
+		console.log(`🏥 ${website.name} health: ${website.healthScore}% (failures: ${website.consecutiveFailures})`);
+	}
+
+	async checkWebsite(website) {
+		// First measure TCP connection time (similar to ping)
+		const tcpTime = await this.measureTcpConnectTime(website.url);
+		
+		const checkResults = [];
+		let finalResult = null;
+		
+		// Strategy 1: Try HEAD request first (lighter)
+		console.log(`🔍 Checking ${website.name} - Attempt 1 (HEAD)`);
+		const headResult = await this.performSingleCheck(website, 'HEAD', 1);
+		checkResults.push(headResult);
+		
+		if (headResult.success) {
+			finalResult = headResult;
+		} else {
+			// Strategy 2: Try GET request
+			console.log(`🔍 Checking ${website.name} - Attempt 2 (GET)`);
+			const getResult = await this.performSingleCheck(website, 'GET', 2);
+			checkResults.push(getResult);
+			
+			if (getResult.success) {
+				finalResult = getResult;
 			} else {
-				// Reset upSince when the site goes down
-				website.upSince = null;
+				// Strategy 3: One more GET attempt with shorter timeout for quick fail
+				console.log(`🔍 Checking ${website.name} - Attempt 3 (GET, shorter timeout)`);
+				const quickResult = await this.performSingleCheck(website, 'GET', 3);
+				checkResults.push(quickResult);
+				
+				// Use the best result from all attempts
+				finalResult = checkResults.find(r => r.success) || quickResult;
 			}
+		}
+		
+		// Update website status based on final result and health scoring
+		const initialStatus = finalResult.success ? "up" : "down";
+		this.updateWebsiteHealth(website, finalResult);
+		
+		// Use health-based status instead of single-check result
+		// website.status is set by updateWebsiteHealth()
+		
+		// Use TCP time if available and reasonable, otherwise use HTTP response time
+		website.responseTime = (tcpTime !== null && tcpTime > 0 && tcpTime < finalResult.responseTime) 
+			? tcpTime 
+			: finalResult.responseTime;
+			
+		website.lastCheck = new Date().toISOString();
+		website.checks++;
 
-			// Calculate uptime percentage
-			website.uptime =
-				website.checks > 0
-					? Math.round(
-							(website.successfulChecks / website.checks) * 100
-					  )
-					: 100;
-
-			// Save to database
-			try {
-				await this.db.updateWebsite(website);
-
-				// Add to history in database
-				const historyEntry = {
-					timestamp: website.lastCheck,
-					status: website.status,
-					responseTime: website.responseTime,
-				};
-				await this.db.addHistoryEntry(website.id, historyEntry);
-			} catch (dbError) {
-				console.error(
-					`❌ Database error for ${website.name}:`,
-					dbError
-				);
+		const isUp = website.status === "up"; // Use health-based status
+		if (isUp) {
+			website.successfulChecks++;
+			// Track the first time the site was detected as up
+			if (!website.upSince) {
+				website.upSince = new Date().toISOString();
 			}
+		} else {
+			// Reset upSince when the site goes down
+			website.upSince = null;
+		}
 
-			// Add to in-memory history (keep last 24 hours)
-			website.history.push({
+		// Calculate uptime percentage
+		website.uptime =
+			website.checks > 0
+				? Math.round(
+						(website.successfulChecks / website.checks) * 100
+				  )
+				: 100;
+
+		// Save to database
+		try {
+			await this.db.updateWebsite(website);
+
+			// Add to history in database
+			const historyEntry = {
 				timestamp: website.lastCheck,
 				status: website.status,
 				responseTime: website.responseTime,
-			});
-
-			// Keep only last configured number of checks (default 24 hours at 1-minute intervals)
-			if (website.history.length > this.maxHistory) {
-				website.history = website.history.slice(-this.maxHistory);
-			}
-
-			console.log(
-				`✅ ${website.name}: ${website.status} (${website.responseTime}ms)`
+			};
+			await this.db.addHistoryEntry(website.id, historyEntry);
+		} catch (dbError) {
+			console.error(
+				`❌ Database error for ${website.name}:`,
+				dbError
 			);
-		} catch (error) {
-			const endTime = process.hrtime.bigint();
-			const httpResponseTime = Math.round(
-				Number(endTime - startTime) / 1000000
-			);
-
-			website.status = "down";
-			// Use TCP time if available, otherwise null for timeout/error cases
-			website.responseTime = tcpTime !== null ? tcpTime : null;
-			website.lastCheck = new Date().toISOString();
-			website.checks++;
-
-			// For timeout errors, we might want to show the timeout duration
-			if (
-				error.code === "ECONNABORTED" ||
-				error.message.includes("timeout")
-			) {
-				// If we got a TCP time but HTTP failed, show the TCP time
-				if (tcpTime !== null) {
-					website.responseTime = tcpTime;
-				} else {
-					website.responseTime = httpResponseTime; // Show how long it took before timeout
-				}
-			}
-
-			// Calculate uptime percentage
-			website.uptime =
-				website.checks > 0
-					? Math.round(
-							(website.successfulChecks / website.checks) * 100
-					  )
-					: 100;
-
-			// Save to database
-			try {
-				await this.db.updateWebsite(website);
-
-				// Add to history in database
-				const historyEntry = {
-					timestamp: website.lastCheck,
-					status: "down",
-					responseTime: website.responseTime, // Use the actual response time (could be TCP time or null)
-				};
-				await this.db.addHistoryEntry(website.id, historyEntry);
-			} catch (dbError) {
-				console.error(
-					`❌ Database error for ${website.name}:`,
-					dbError
-				);
-			}
-
-			// Add to in-memory history
-			website.history.push({
-				timestamp: website.lastCheck,
-				status: "down",
-				responseTime: website.responseTime, // Use the actual response time (could be TCP time or null)
-				error: error.message,
-			});
-
-			// Keep only last configured number of checks
-			if (website.history.length > this.maxHistory) {
-				website.history = website.history.slice(-this.maxHistory);
-			}
-
-			console.log(`❌ ${website.name}: down (${error.message})`);
 		}
+
+		// Add to in-memory history (keep last 24 hours)
+		website.history.push({
+			timestamp: website.lastCheck,
+			status: website.status,
+			responseTime: website.responseTime,
+		});
+
+		// Keep only last configured number of checks (default 24 hours at 1-minute intervals)
+		if (website.history.length > this.maxHistory) {
+			website.history = website.history.slice(-this.maxHistory);
+		}
+
+		// Log result with attempt details
+		const attemptInfo = checkResults.length > 1 
+			? ` (tried ${checkResults.length} methods)`
+			: '';
+		
+		if (isUp) {
+			console.log(`✅ ${website.name}: ${website.status} (${website.responseTime}ms)${attemptInfo}`);
+		} else {
+			const errorSummary = checkResults.map(r => `${r.method}:${r.error || 'unknown'}`).join(', ');
+			console.log(`❌ ${website.name}: ${website.status} - ${errorSummary}${attemptInfo}`);
+		}
+
+		// Update health score and status
+		this.updateWebsiteHealth(website, finalResult);
 
 		return website;
 	}

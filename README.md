@@ -1,6 +1,13 @@
-# NodePuls 🚀
+# NodePuls 🚀*Real-time system monitoring with modern UI design and comprehensive uptime tracking*
 
-<div align="center">
+**🆕 Latest Release Features:**
+- 🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
+- 🏥 **Health Scoring System**: Gradual health degradation prevents single-failure false positives
+- 📊 **Adaptive Chart Visualization**: Dynamic scaling with per-website performance thresholds  
+- ⚡ **Smart Resource Management**: System monitoring only runs when clients are connected
+- 🔧 **Enhanced Reliability**: 10-second timeouts and improved error handling
+
+[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Deployment](#-deployment-options) • [🛠️ Development](#%EF%B8%8F-development) • [🐛 Troubleshooting](#-troubleshooting)<div align="center">
 
 ![NodePuls Logo](client/public/nodepuls.svg)
 
@@ -59,6 +66,8 @@ npm run install:all
 
 **📝 Note**: The repository includes a sample `homelab.db` with example websites for immediate testing. This contains no sensitive data and helps new users get started quickly. Example sites include Google, Nextcloud, Home Assistant, and other common homelab services.
 
+**🆕 Recent Improvements**: NodePuls now features advanced redundant website monitoring that eliminates false "Down" alerts for external sites, adaptive chart visualization with intelligent scaling, and optimized resource usage that only monitors system resources when clients are connected.
+
 ### 2️⃣ Development
 
 ```bash
@@ -94,12 +103,18 @@ npm start       # Start with production environment
 - **Resource Charts**: Beautiful animated charts showing usage trends with 50-point history
 - **Temperature Monitoring**: CPU temperature tracking (when supported)
 
-### 🌐 **Website Monitoring**
+### 🌐 **Advanced Website Monitoring**
+- **Multi-Method Checking**: HEAD → GET → Retry strategy for maximum reliability
+- **Health Scoring System**: Gradual health degradation prevents false "down" alerts (eliminates Google/Cloudflare false positives)
+- **Redundant Monitoring**: 3-tier checking system with intelligent fallback and 10-second timeouts
+- **Smart Status Logic**: Sites marked down only after multiple consecutive failures AND low health score
+- **Response Time Analytics**: Dynamic chart scaling with adaptive thresholds per website
+- **Port Number Display**: Proper formatting for IP addresses with custom ports (e.g., 192.168.1.100:8080)
 - **Uptime Tracking**: Monitor multiple websites simultaneously with TCP ping + HTTP checks
-- **Response Time**: Track website performance metrics with millisecond precision
-- **Status History**: Historical uptime data with SQLite storage and cleanup automation
-- **Smart Analytics**: Comprehensive uptime statistics and response time trends
+- **Status History**: Historical uptime data with SQLite storage and automatic cleanup
+- **Smart Analytics**: Comprehensive uptime statistics and response time trends with intelligent scaling
 - **Drag & Drop Management**: Reorder monitored websites with intuitive interface
+- **Client-Aware Resource Management**: System monitoring starts/stops based on client connections
 
 ### 🎨 **Modern UI/UX**
 - **Animated Logo**: Custom NodePuls branding with hover effects
@@ -221,13 +236,26 @@ CORS_ORIGIN=                 # Auto-generated if not specified
 DB_PATH=/app/data/homelab.db # SQLite database path
 ```
 
-#### **🔍 Monitoring Configuration**
+#### **🔍 Enhanced Monitoring Configuration**
 ```env
-# ⏱️ Timing Settings
-MONITOR_INTERVAL=5000        # System monitoring interval (ms)
-CLEANUP_INTERVAL=24          # Database cleanup interval (hours)
-DEFAULT_TIMEOUT=10000        # Website check timeout (ms)
-MAX_HISTORY_ENTRIES=100      # Maximum history entries per website
+# ⏱️ Website Monitoring
+WEBSITE_CHECK_TIMEOUT=10000      # Website check timeout (increased from 5s to 10s)
+WEBSITE_CHECK_INTERVAL="*/1 * * * *"  # Cron schedule for checks (every minute)
+MAX_WEBSITE_HISTORY=1440         # 24 hours of history at 1-minute intervals
+WEBSITE_DOWN_THRESHOLD=3         # Consecutive failures before marking down
+
+# 🏥 Health Scoring System (NEW)
+HEALTH_SCORE_SUCCESS_BONUS=10    # Health points gained on successful check
+HEALTH_SCORE_FAILURE_PENALTY=15  # Health points lost on failed check
+HEALTH_SCORE_DOWN_THRESHOLD=30   # Health % threshold for marking site down
+MIN_CONSECUTIVE_FAILURES=2       # Minimum consecutive failures required
+
+# ⏱️ System Monitoring  
+MONITOR_INTERVAL=5000            # System metrics update interval (ms)
+SYSTEM_UPDATE_INTERVAL=5000      # System monitoring interval (ms)
+CLEANUP_INTERVAL=24              # Database cleanup interval (hours)
+DEFAULT_TIMEOUT=10000            # Default timeout for HTTP requests (ms)
+MAX_HISTORY_ENTRIES=100          # Maximum history entries per website
 
 # 📈 Performance Settings
 COMPRESSION_LEVEL=6
@@ -264,15 +292,27 @@ NodePuls automatically monitors:
 
 **Adding Websites:**
 1. 🖱️ Click **"Add Website"** button in the dashboard
-2. 📝 Enter website name and URL
+2. 📝 Enter website name and URL (supports various formats):
+   - `google.com` → auto-converted to `http://google.com`
+   - `192.168.1.100:8080` → auto-converted to `http://192.168.1.100:8080`
+   - `https://example.com` → used as-is
+   - Validation ensures proper URL format before adding
 3. 📊 Monitor response times and uptime percentage automatically
 
+**Enhanced URL Display:**
+- **Port Preservation**: IP addresses with custom ports display correctly (e.g., `192.168.1.100:8080`)
+- **Smart Formatting**: Shows hostname/IP with port when not default (80/443)
+- **Clean Display**: Hides default ports for standard HTTP/HTTPS
+
 **Monitored Metrics:**
-- ✅ **Uptime Status**: Online/Offline status with color indicators
+- ✅ **Uptime Status**: Online/Offline status with health-based logic and multi-method checking
 - ⏱️ **Response Time**: TCP connection + HTTP response time in milliseconds
+- 🏥 **Health Score**: Dynamic health percentage (0-100%) with failure tracking and gradual degradation
 - 📈 **Uptime Percentage**: Historical uptime statistics
-- 🕐 **Last Check**: Timestamp of most recent check
+- 🕐 **Last Check**: Timestamp of most recent check with detailed attempt information
 - 📜 **Status History**: SQLite-stored historical data with analytics
+- 🔄 **Check Methods**: Logs show which checking methods were used (HEAD/GET/Retry)
+- 🛡️ **Redundant Checking**: Three-tier verification system prevents false positives
 
 ---
 
@@ -293,11 +333,22 @@ NodePuls automatically monitors:
 
 | Event | Direction | Description |
 |-------|-----------|-------------|
-| `systemUpdate` | Server → Client | Real-time system metrics |
-| `websites` | Server → Client | Updated website list |
-| `addWebsite` | Client → Server | Add new website |
-| `removeWebsite` | Client → Server | Remove website |
-| `updateWebsite` | Client → Server | Update website details |
+| `systemUpdate` | Server → Client | Real-time system metrics (only when clients connected) |
+| `websites` | Server → Client | Updated website list with health scores |
+| `addWebsite` | Client → Server | Add new website with URL validation |
+| `removeWebsite` | Client → Server | Remove website by ID |
+| `updateWebsite` | Client → Server | Update website details (name, URL) |
+| `updateWebsiteOrder` | Client → Server | Reorder websites via drag & drop |
+| `clearWebsiteHistory` | Client → Server | Clear historical data for specific website |
+| `error` | Server → Client | Error messages for failed operations |
+
+### Real-time Features
+
+- **🔄 Auto-reconnection**: WebSocket automatically reconnects on connection loss
+- **⚡ Live Updates**: System metrics update every 5 seconds when viewed
+- **🛡️ Smart Resource Usage**: System monitoring pauses when no clients connected
+- **🌐 Continuous Uptime Monitoring**: Website checks run 24/7 regardless of viewers
+- **📊 Dynamic Charts**: Real-time chart updates with adaptive scaling
 | `updateWebsiteOrder` | Client → Server | Reorder websites |
 | `clearWebsiteHistory` | Client → Server | Clear website history |
 
@@ -577,7 +628,21 @@ volumes:
 # Note: Host networking is essential for accurate network monitoring
 ```
 
-#### **🔌 WebSocket Connection Failed**
+#### **� Website False "Down" Alerts**
+```bash
+# 🔍 Issue: External sites like Google or Cloudflare showing as "Down" intermittently
+
+# ✅ Solution: NodePuls now uses advanced health scoring system
+# - Health score prevents single failures from marking sites down
+# - 3-tier checking (HEAD → GET → Retry) eliminates false positives
+# - Sites need multiple consecutive failures AND low health score to be marked down
+
+# 🔍 To verify the monitoring logic is working:
+# Check console logs for detailed monitoring attempts
+# Health scores visible in dashboard tooltips
+# Consider increasing timeout if needed:
+WEBSITE_CHECK_TIMEOUT=15000     # Increase from 10s to 15s if needed
+```
 ```bash
 # 🔍 Issue: Real-time updates not working, connection errors
 
@@ -603,7 +668,23 @@ apt-get install python3 make g++
 xcode-select --install
 ```
 
-#### **🐳 Docker Build Failures (Python distutils)**
+#### **� Charts Not Scaling Properly**
+```bash
+# 🔍 Issue: Response time charts showing tiny bars or poor scaling
+
+# ✅ Solution: Charts now use adaptive thresholds per website
+# - Each website gets custom performance thresholds
+# - Minimum bar height ensures visibility for fast sites
+# - Dynamic scaling adapts to each site's characteristics
+
+# 🔍 Features of new chart system:
+# - Green: ≤ 70% of average response time (min 100ms)
+# - Orange: ≤ 150% of average response time (min 200ms)  
+# - Red: > 150% of average response time
+# - Automatic minimum height for visibility
+```
+
+#### **�🐳 Docker Build Failures (Python distutils)**
 ```bash
 # 🔍 Issue: Docker build fails with "ModuleNotFoundError: No module named 'distutils'"
 
@@ -783,3 +864,69 @@ Built with ❤️ by [Said Mrini](https://github.com/your-username)
 [⬆️ Back to Top](#nodepuls-)
 
 </div>
+
+---
+
+## 🔍 Enhanced Monitoring System
+
+### 🛡️ **Redundant Website Checking**
+
+NodePuls implements a sophisticated 3-tier checking system to eliminate false "down" alerts:
+
+#### **Multi-Method Strategy**
+1. **HEAD Request** (Lightweight check)
+   - Fast, minimal bandwidth usage
+   - Supported by most web servers
+   - Quick response for healthy services
+
+2. **GET Request** (Full HTTP check)
+   - Complete HTTP transaction
+   - Handles servers that don't support HEAD
+   - Downloads actual content
+
+3. **Retry GET** (Final attempt)
+   - Additional attempt with fresh network conditions
+   - Catches temporary network hiccups
+   - Last chance before health degradation
+
+#### **🏥 Health Scoring System**
+
+Each website maintains a **dynamic health score (0-100%)**:
+
+- **Successful Check**: +10 health points
+- **Failed Check**: -15 health points
+- **Status Logic**: 
+  - ✅ **UP**: Health > 30% OR < 3 consecutive failures
+  - ❌ **DOWN**: Health ≤ 30% AND 2+ consecutive failures OR 3+ consecutive failures
+
+#### **🎯 Benefits**
+- **Reduces False Positives**: Temporary network issues won't trigger alerts
+- **External Site Stability**: Google, CloudFlare, etc. show consistent status
+- **Gradual Degradation**: Health declines over time vs instant failure
+- **Smart Recovery**: Quick recovery when services return to normal
+
+### 📊 **Dynamic Chart Visualization**
+
+Website analytics now feature **adaptive response time charts**:
+
+#### **Intelligent Thresholds**
+- **Fast (Green)**: ≤ 70% of average response time (min 100ms)
+- **OK (Orange)**: ≤ 150% of average response time (min 200ms)
+- **Slow (Red)**: > 150% of average response time
+
+#### **Adaptive Scaling**
+- **Minimum Height**: Even 5ms responses show as visible bars
+- **Dynamic Range**: Chart adapts to each website's performance characteristics
+- **Proportional Display**: No more tiny bars or chart overflow
+- **Per-Website Optimization**: Each site gets custom thresholds
+
+### ⚡ **Resource Optimization**
+
+Smart system monitoring that **adapts to usage**:
+
+- **Client-Aware**: System monitoring starts only when clients connect
+- **Auto-Shutdown**: CPU/Memory/Disk monitoring stops when no one is watching
+- **Always-On Website Monitoring**: Uptime checks continue 24/7 regardless of viewers
+- **Reduced Footprint**: Saves system resources during idle periods
+
+---

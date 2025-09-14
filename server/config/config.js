@@ -11,7 +11,7 @@ const config = {
 	websiteCheckInterval: process.env.WEBSITE_CHECK_INTERVAL || "*/1 * * * *", // Every minute
 
 	// Website check timeout
-	websiteCheckTimeout: parseInt(process.env.WEBSITE_CHECK_TIMEOUT) || 5000, // 5 seconds
+	websiteCheckTimeout: parseInt(process.env.WEBSITE_CHECK_TIMEOUT) || 10000, // 10 seconds
 
 	// Maximum history length for charts
 	maxHistoryLength: parseInt(process.env.MAX_HISTORY_LENGTH) || 60, // 60 data points

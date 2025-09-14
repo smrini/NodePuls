@@ -26,7 +26,7 @@ services:
             - WEBSITE_DOWN_THRESHOLD=3
             - SYSTEM_UPDATE_INTERVAL=5000
             - WEBSITE_CHECK_INTERVAL=*/1 * * * *
-            - WEBSITE_CHECK_TIMEOUT=5000
+            - WEBSITE_CHECK_TIMEOUT=10000
             - MAX_HISTORY_LENGTH=60
             - MAX_WEBSITE_HISTORY=1440
 

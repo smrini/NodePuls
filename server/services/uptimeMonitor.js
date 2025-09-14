@@ -154,20 +154,38 @@ class UptimeMonitor {
 
 		try {
 			const response = await axios.get(website.url, {
-				timeout: this.checkTimeout,
-				validateStatus: (status) => status < 500,
+				timeout: this.checkTimeout || 10000, // Increased timeout to 10 seconds
+				validateStatus: (status) => status < 500, // Accept redirects and client errors as "up"
 				headers: {
-					"User-Agent": "NodePuls/1.0",
+					"User-Agent": "Mozilla/5.0 (compatible; NodePuls/1.0; +monitoring-bot)",
+					"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+					"Accept-Language": "en-US,en;q=0.5",
+					"Accept-Encoding": "gzip, deflate",
+					"Connection": "keep-alive",
+					"Cache-Control": "no-cache",
 				},
-				maxRedirects: 5,
+				maxRedirects: 10, // Increased redirect limit
 				decompress: true,
+				// Follow redirects and handle HTTPS properly
+				httpsAgent: new (require('https').Agent)({
+					rejectUnauthorized: false, // Accept self-signed certificates
+					timeout: 10000
+				}),
+				// Handle HTTP properly
+				httpAgent: new (require('http').Agent)({
+					timeout: 10000,
+					keepAlive: true
+				})
 			});
 
 			const endTime = process.hrtime.bigint();
 			const httpResponseTime = Math.round(
 				Number(endTime - startTime) / 1000000
 			);
-			const isUp = response.status >= 200 && response.status < 400;
+			
+			// More lenient status checking - consider 2xx, 3xx as up
+			// Even some 4xx codes (like 403, 401) indicate the server is responding
+			const isUp = response.status >= 200 && response.status < 500;
 
 			website.status = isUp ? "up" : "down";
 			// Use TCP connection time if available (more accurate for uptime monitoring)

@@ -352,7 +352,13 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 	const formatUrl = (url: string) => {
 		try {
 			const urlObj = new URL(url);
-			return urlObj.hostname;
+			// Include port if it's not the default port for the protocol
+			const isDefaultPort = 
+				(urlObj.protocol === 'http:' && urlObj.port === '80') ||
+				(urlObj.protocol === 'https:' && urlObj.port === '443') ||
+				urlObj.port === '';
+			
+			return isDefaultPort ? urlObj.hostname : `${urlObj.hostname}:${urlObj.port}`;
 		} catch {
 			return url;
 		}

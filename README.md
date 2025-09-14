@@ -1,13 +1,6 @@
-# NodePuls 🚀*Real-time system monitoring with modern UI design and comprehensive uptime tracking*
+# NodePuls
+*Real-time system monitoring with modern UI design and comprehensive uptime tracking*
 
-**🆕 Latest Release Features:**
-- 🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
-- 🏥 **Health Scoring System**: Gradual health degradation prevents single-failure false positives
-- 📊 **Adaptive Chart Visualization**: Dynamic scaling with per-website performance thresholds  
-- ⚡ **Smart Resource Management**: System monitoring only runs when clients are connected
-- 🔧 **Enhanced Reliability**: 10-second timeouts and improved error handling
-
-[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Deployment](#-deployment-options) • [🛠️ Development](#%EF%B8%8F-development) • [🐛 Troubleshooting](#-troubleshooting)<div align="center">
 
 ![NodePuls Logo](client/public/nodepuls.svg)
 
@@ -21,7 +14,7 @@
 
 *Real-time system monitoring with modern UI design and comprehensive uptime tracking*
 
-[🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Deployment](#-deployment-options) • [�️ Development](#%EF%B8%8F-development) • [🐛 Troubleshooting](#-troubleshooting)
+[🆕 Latest Updates](#-latest-updates) • [🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Deployment](#-deployment-options) • [�️ Development](#%EF%B8%8F-development) • [🐛 Troubleshooting](#-troubleshooting)
 
 </div>
 
@@ -29,22 +22,31 @@
 
 ## 📋 Table of Contents
 
-1. [🚀 Quick Start](#-quick-start)
-2. [✨ Features](#-features)
-3. [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
-4. [📋 Available Commands](#-available-commands)
-5. [⚙️ Configuration](#%EF%B8%8F-configuration)
-6. [🔧 API Reference](#-api-endpoints)
-7. [📋 System Requirements](#-system-requirements)
-8. [📁 Project Structure](#-project-structure)
-9. [🐳 Deployment Options](#-deployment-options)
-10. [🛠️ Development](#%EF%B8%8F-development)
-11. [🐛 Troubleshooting](#-troubleshooting)
-12. [🔒 Security & Best Practices](#-security--best-practices)
-13. [🤝 Contributing](#-contributing)
-14. [📞 Support & Contact](#-support--contact)
+1. [🆕 Latest Updates](#-latest-updates)
+2. [🚀 Quick Start](#-quick-start)
+3. [✨ Features](#-features)
+4. [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
+5. [📋 Available Commands](#-available-commands)
+6. [⚙️ Configuration](#%EF%B8%8F-configuration)
+7. [🔧 API Reference](#-api-endpoints)
+8. [📋 System Requirements](#-system-requirements)
+9. [📁 Project Structure](#-project-structure)
+10. [🐳 Deployment Options](#-deployment-options)
+11. [🛠️ Development](#%EF%B8%8F-development)
+12. [🐛 Troubleshooting](#-troubleshooting)
+13. [🔒 Security & Best Practices](#-security--best-practices)
+14. [🤝 Contributing](#-contributing)
+15. [📞 Support & Contact](#-support--contact)
 
 ---
+
+## 🆕 Latest Updates:
+- 🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
+- 🏥 **Health Scoring System**: Gradual health degradation prevents single-failure false positives
+- 📊 **Adaptive Chart Visualization**: Dynamic scaling with per-website performance thresholds  
+- ⚡ **Smart Resource Management**: System monitoring only runs when clients are connected
+- 🔧 **Enhanced Reliability**: 10-second timeouts and improved error handling
+
 
 ## 🚀 Quick Start
 

@@ -128,6 +128,10 @@ app.delete("/api/websites/:id", async (req, res) => {
 let connectedClients = 0;
 let systemMonitoringInterval = null;
 
+// Debounce mechanism for website reordering
+let reorderTimeout = null;
+const REORDER_DEBOUNCE_DELAY = 300; // 300ms debounce
+
 const startSystemMonitoring = () => {
 	if (systemMonitoringInterval) {
 		clearInterval(systemMonitoringInterval);
@@ -195,22 +199,35 @@ io.on("connection", async (socket) => {
 		}
 	});
 
-	// Handle website reordering
+	// Handle website reordering with debouncing
 	socket.on("updateWebsiteOrder", async (websiteIds) => {
 		try {
-			// This is a simple implementation that doesn't persist the order
-			// For now we'll just emit the updated list
-			// TODO: Add persistence of website order if needed
 			console.log("Received updated website order:", websiteIds);
-			const websites = await uptimeMonitor.getWebsites();
-
-			// We won't modify the backend order for now, but just log that we received it
-			// In a real implementation, you'd want to save this order to the database
-
-			// Just re-emit the current websites - in a real implementation,
-			// you'd reorder them according to the provided IDs first
-			io.emit("websites", websites);
+			
+			// Clear any existing timeout
+			if (reorderTimeout) {
+				clearTimeout(reorderTimeout);
+			}
+			
+			// Debounce the database update to prevent rapid-fire updates
+			reorderTimeout = setTimeout(async () => {
+				try {
+					// Update the sort order in the database using uptimeMonitor's database instance
+					await uptimeMonitor.db.updateWebsiteOrder(websiteIds);
+					
+					// Get the updated websites list (now in the new order)
+					const websites = await uptimeMonitor.getWebsites();
+					
+					// Emit the reordered websites to all clients
+					io.emit("websites", websites);
+				} catch (dbError) {
+					console.error("❌ Error updating website order:", dbError.message);
+					socket.emit("error", { message: dbError.message });
+				}
+			}, REORDER_DEBOUNCE_DELAY);
+			
 		} catch (error) {
+			console.error("❌ Error handling website reorder:", error.message);
 			socket.emit("error", { message: error.message });
 		}
 	});

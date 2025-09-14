@@ -76,6 +76,14 @@ class DatabaseService {
 
 			let tablesCreated = 0;
 			const totalTables = 2;
+			let migrationsCompleted = 0;
+			const totalMigrations = 5; // up_since, health_score, consecutive_failures, last_successful_check, sort_order
+
+			const checkAllComplete = () => {
+				if (tablesCreated === totalTables && migrationsCompleted === totalMigrations) {
+					resolve();
+				}
+			};
 
 			this.db.run(createWebsitesTable, (err) => {
 				if (err) {
@@ -86,6 +94,8 @@ class DatabaseService {
 					reject(err);
 				} else {
 					console.log("✅ Websites table ready");
+					
+					// Run migrations after table is created
 					// Add up_since column if it doesn't exist (migration)
 					this.db.run(
 						"ALTER TABLE websites ADD COLUMN up_since TEXT",
@@ -103,59 +113,87 @@ class DatabaseService {
 									"✅ Added up_since column to websites table"
 								);
 							}
-							
-							// Add health tracking columns (migration)
-							this.db.run(
-								"ALTER TABLE websites ADD COLUMN health_score INTEGER DEFAULT 100",
-								(err) => {
-									if (
-										err &&
-										!err.message.includes("duplicate column")
-									) {
-										console.error(
-											"❌ Error adding health_score column:",
-											err.message
-										);
-									}
-								}
-							);
-							
-							this.db.run(
-								"ALTER TABLE websites ADD COLUMN consecutive_failures INTEGER DEFAULT 0",
-								(err) => {
-									if (
-										err &&
-										!err.message.includes("duplicate column")
-									) {
-										console.error(
-											"❌ Error adding consecutive_failures column:",
-											err.message
-										);
-									}
-								}
-							);
-							
-							this.db.run(
-								"ALTER TABLE websites ADD COLUMN last_successful_check TEXT",
-								(err) => {
-									if (
-										err &&
-										!err.message.includes("duplicate column")
-									) {
-										console.error(
-											"❌ Error adding last_successful_check column:",
-											err.message
-										);
-									}
-								}
-							);
-							
-							tablesCreated++;
-							if (tablesCreated === totalTables) {
-								resolve();
-							}
+							migrationsCompleted++;
+							checkAllComplete();
 						}
 					);
+					
+					// Add health tracking columns (migration)
+					this.db.run(
+						"ALTER TABLE websites ADD COLUMN health_score INTEGER DEFAULT 100",
+						(err) => {
+							if (
+								err &&
+								!err.message.includes("duplicate column")
+							) {
+								console.error(
+									"❌ Error adding health_score column:",
+									err.message
+								);
+							}
+							migrationsCompleted++;
+							checkAllComplete();
+						}
+					);
+					
+					this.db.run(
+						"ALTER TABLE websites ADD COLUMN consecutive_failures INTEGER DEFAULT 0",
+						(err) => {
+							if (
+								err &&
+								!err.message.includes("duplicate column")
+							) {
+								console.error(
+									"❌ Error adding consecutive_failures column:",
+									err.message
+								);
+							}
+							migrationsCompleted++;
+							checkAllComplete();
+						}
+					);
+					
+					this.db.run(
+						"ALTER TABLE websites ADD COLUMN last_successful_check TEXT",
+						(err) => {
+							if (
+								err &&
+								!err.message.includes("duplicate column")
+							) {
+								console.error(
+									"❌ Error adding last_successful_check column:",
+									err.message
+								);
+							}
+							migrationsCompleted++;
+							checkAllComplete();
+						}
+					);
+					
+					// Add sort_order column for drag and drop ordering (migration)
+					this.db.run(
+						"ALTER TABLE websites ADD COLUMN sort_order INTEGER DEFAULT 0",
+						(err) => {
+							if (
+								err &&
+								!err.message.includes("duplicate column")
+							) {
+								console.error(
+									"❌ Error adding sort_order column:",
+									err.message
+								);
+							} else if (!err) {
+								console.log(
+									"✅ Added sort_order column to websites table"
+								);
+							}
+							migrationsCompleted++;
+							checkAllComplete();
+						}
+					);
+					
+					tablesCreated++;
+					checkAllComplete();
 				}
 			});
 
@@ -169,9 +207,7 @@ class DatabaseService {
 				} else {
 					console.log("✅ Website history table ready");
 					tablesCreated++;
-					if (tablesCreated === totalTables) {
-						resolve();
-					}
+					checkAllComplete();
 				}
 			});
 		});
@@ -180,31 +216,45 @@ class DatabaseService {
 	// Website operations
 	addWebsite(website) {
 		return new Promise((resolve, reject) => {
-			const query = `
-                INSERT INTO websites (id, name, url, status, response_time, last_check, up_since, uptime, checks, successful_checks)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-
-			this.db.run(
-				query,
-				[
-					website.id,
-					website.name,
-					website.url,
-					website.status,
-					website.responseTime,
-					website.lastCheck,
-					website.upSince,
-					website.uptime,
-					website.checks,
-					website.successfulChecks,
-				],
-				function (err) {
+			// First, get the highest sort_order to append the new website at the end
+			this.db.get(
+				"SELECT MAX(sort_order) as max_order FROM websites",
+				(err, row) => {
 					if (err) {
 						reject(err);
-					} else {
-						resolve(website);
+						return;
 					}
+
+					const nextSortOrder = (row.max_order || 0) + 1;
+
+					const query = `
+                        INSERT INTO websites (id, name, url, status, response_time, last_check, up_since, uptime, checks, successful_checks, sort_order)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `;
+
+					this.db.run(
+						query,
+						[
+							website.id,
+							website.name,
+							website.url,
+							website.status,
+							website.responseTime,
+							website.lastCheck,
+							website.upSince,
+							website.uptime,
+							website.checks,
+							website.successfulChecks,
+							nextSortOrder,
+						],
+						function (err) {
+							if (err) {
+								reject(err);
+							} else {
+								resolve({...website, sort_order: nextSortOrder});
+							}
+						}
+					);
 				}
 			);
 		});
@@ -268,7 +318,7 @@ class DatabaseService {
 		await this.waitForInit();
 		return new Promise((resolve, reject) => {
 			this.db.all(
-				"SELECT * FROM websites ORDER BY created_at DESC",
+				"SELECT * FROM websites ORDER BY sort_order ASC, created_at DESC",
 				[],
 				(err, rows) => {
 					if (err) {
@@ -285,6 +335,10 @@ class DatabaseService {
 							uptime: row.uptime,
 							checks: row.checks,
 							successfulChecks: row.successful_checks,
+							healthScore: row.health_score || 100,
+							consecutiveFailures: row.consecutive_failures || 0,
+							lastSuccessfulCheck: row.last_successful_check,
+							sortOrder: row.sort_order || 0,
 							history: [], // Will be loaded separately if needed
 						}));
 						resolve(websites);
@@ -316,6 +370,10 @@ class DatabaseService {
 							uptime: row.uptime,
 							checks: row.checks,
 							successfulChecks: row.successful_checks,
+							healthScore: row.health_score || 100,
+							consecutiveFailures: row.consecutive_failures || 0,
+							lastSuccessfulCheck: row.last_successful_check,
+							sortOrder: row.sort_order || 0,
 							history: [],
 						};
 						resolve(website);
@@ -382,6 +440,68 @@ class DatabaseService {
 					resolve(this.changes);
 				}
 			});
+		});
+	}
+
+	updateWebsiteOrder(websiteIds) {
+		return new Promise((resolve, reject) => {
+			// Store reference to the database instance
+			const db = this.db;
+			
+			// Simple retry mechanism for transaction conflicts
+			const executeUpdate = (retryCount = 0) => {
+				// Use a transaction to update all sort orders atomically
+				db.serialize(() => {
+					db.run("BEGIN TRANSACTION", (err) => {
+						if (err) {
+							// If transaction error and we can retry, wait and try again
+							if (err.message.includes("cannot start a transaction") && retryCount < 3) {
+								setTimeout(() => executeUpdate(retryCount + 1), 50 * (retryCount + 1));
+								return;
+							}
+							reject(err);
+							return;
+						}
+
+						let completed = 0;
+						let hasError = false;
+						const total = websiteIds.length;
+
+						if (total === 0) {
+							db.run("COMMIT", () => resolve([]));
+							return;
+						}
+
+						// Update each website's sort_order based on its position in the array
+						websiteIds.forEach((websiteId, index) => {
+							const query = `UPDATE websites SET sort_order = ? WHERE id = ?`;
+							
+							db.run(query, [index, websiteId], function (err) {
+								if (err && !hasError) {
+									hasError = true;
+									console.error("❌ Error updating website order:", err.message);
+									db.run("ROLLBACK", () => reject(err));
+									return;
+								}
+
+								completed++;
+								if (completed === total && !hasError) {
+									db.run("COMMIT", (commitErr) => {
+										if (commitErr) {
+											reject(commitErr);
+										} else {
+											console.log(`✅ Updated sort order for ${total} websites`);
+											resolve(websiteIds);
+										}
+									});
+								}
+							});
+						});
+					});
+				});
+			};
+
+			executeUpdate();
 		});
 	}
 

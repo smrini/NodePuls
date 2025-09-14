@@ -86,23 +86,50 @@ class UptimeMonitor {
 	}
 
 	async getWebsites() {
-		const websites = Array.from(this.websites.values());
-
-		// Load recent history for each website from database
-		for (const website of websites) {
-			try {
-				const history = await this.db.getWebsiteHistory(website.id, 50); // Get last 50 entries
-				website.history = history;
-			} catch (error) {
-				console.error(
-					`Error loading history for ${website.name}:`,
-					error
-				);
-				website.history = [];
+		try {
+			// Get websites from database in sort_order
+			const orderedWebsites = await this.db.getAllWebsites();
+			
+			// Merge with in-memory data and load recent history
+			const websites = [];
+			for (const dbWebsite of orderedWebsites) {
+				const memoryWebsite = this.websites.get(dbWebsite.id);
+				if (memoryWebsite) {
+					// Use memory website with current status, but preserve DB order
+					const website = { ...memoryWebsite };
+					try {
+						const history = await this.db.getWebsiteHistory(website.id, 50); // Get last 50 entries
+						website.history = history;
+					} catch (error) {
+						console.error(
+							`Error loading history for ${website.name}:`,
+							error
+						);
+						website.history = [];
+					}
+					websites.push(website);
+				}
 			}
-		}
 
-		return websites;
+			return websites;
+		} catch (error) {
+			console.error("Error getting websites from database:", error);
+			// Fallback to in-memory websites if database fails
+			const websites = Array.from(this.websites.values());
+			for (const website of websites) {
+				try {
+					const history = await this.db.getWebsiteHistory(website.id, 50);
+					website.history = history;
+				} catch (historyError) {
+					console.error(
+						`Error loading history for ${website.name}:`,
+						historyError
+					);
+					website.history = [];
+				}
+			}
+			return websites;
+		}
 	}
 
 	// Measure TCP connection time similar to ping

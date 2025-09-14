@@ -62,6 +62,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 	handleEditWebsite,
 }) => {
 	const ref = useRef<HTMLDivElement>(null);
+	const dragHandleRef = useRef<HTMLDivElement>(null);
 
 	const [{ isDragging }, drag] = useDrag({
 		type: ItemTypes.WEBSITE_CARD,
@@ -85,6 +86,29 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 				return;
 			}
 
+			// Determine rectangle on screen
+			const hoverBoundingRect = ref.current.getBoundingClientRect();
+
+			// Get vertical middle
+			const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+
+			// Determine mouse position
+			const clientOffset = monitor.getClientOffset();
+			
+			// Get pixels to the top
+			const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+
+			// Only perform the move when the mouse has crossed half of the items height
+			// When dragging downwards, only move when the cursor is below 50%
+			// When dragging upwards, only move when the cursor is above 50%
+			if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+				return;
+			}
+
+			if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+				return;
+			}
+
 			// Time to actually perform the action
 			moveCard(dragIndex, hoverIndex);
 
@@ -93,8 +117,9 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 		},
 	});
 
-	// Initialize drag and drop refs
-	drag(drop(ref));
+	// Connect drag to the handle only, drop to the entire card
+	drag(dragHandleRef);
+	drop(ref);
 
 	return (
 		<div
@@ -102,16 +127,43 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({
 			className={`website-card compact ${
 				isDragging ? "is-dragging" : ""
 			}`}
-			style={{ cursor: "pointer", opacity: isDragging ? 0.5 : 1 }}>
+			style={{ 
+				opacity: isDragging ? 0.3 : 1,
+				transform: isDragging ? 'rotate(5deg)' : 'none',
+				transition: isDragging ? 'none' : 'all 0.2s ease',
+			}}>
 			{/* Compact Card Header */}
 			<div className="card-header">
 				<div
+					ref={dragHandleRef}
 					style={{
 						marginRight: "10px",
+						cursor: "grab",
+						padding: "4px",
+						borderRadius: "4px",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						transition: "all 0.2s ease",
 					}}
 					className="drag-handle"
-					onClick={(e) => e.stopPropagation()}>
-					<GripVertical size={16} />
+					onClick={(e) => e.stopPropagation()}
+					onMouseDown={(e) => {
+						e.currentTarget.style.cursor = "grabbing";
+					}}
+					onMouseUp={(e) => {
+						e.currentTarget.style.cursor = "grab";
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.cursor = "grab";
+					}}>
+					<GripVertical 
+						size={16} 
+						style={{ 
+							color: isDragging ? "#0066cc" : "#666",
+							transition: "color 0.2s ease"
+						}} 
+					/>
 				</div>
 				<div
 					className="website-main-info"
@@ -244,10 +296,31 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 	}>({ isOpen: false, website: null });
 	const [websiteOrder, setWebsiteOrder] = useState<Website[]>([]);
 
-	// Update websiteOrder when the websites prop changes
+	// Update websiteOrder when the websites prop changes, but preserve user-defined order
 	React.useEffect(() => {
-		setWebsiteOrder(websites);
-	}, [websites]);
+		if (websiteOrder.length === 0) {
+			// Initial load - set the order from props
+			setWebsiteOrder(websites);
+		} else {
+			// Update existing websites while preserving order
+			setWebsiteOrder((currentOrder) => {
+				// Create a map of current websites by ID for quick lookup
+				const websiteMap = new Map(websites.map(w => [w.id, w]));
+				
+				// Filter out any websites that no longer exist and update existing ones
+				const updatedOrder = currentOrder
+					.filter(w => websiteMap.has(w.id))
+					.map(w => websiteMap.get(w.id)!);
+				
+				// Add any new websites that weren't in the current order
+				const existingIds = new Set(updatedOrder.map(w => w.id));
+				const newWebsites = websites.filter(w => !existingIds.has(w.id));
+				
+				return [...updatedOrder, ...newWebsites];
+			});
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [websites]); // websiteOrder.length intentionally excluded to prevent infinite loops
 
 	// Get the current (updated) website data for analytics modal
 	const currentAnalyticsWebsite = useMemo(() => {

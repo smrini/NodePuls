@@ -1,10 +1,12 @@
-# NodePuls
-*Real-time system monitoring with modern UI design and comprehensive uptime tracking*
+# NodePuls 🚀
 
+<div align="center">
 
 ![NodePuls Logo](client/public/nodepuls.svg)
 
 **A beautiful, lightweight real-time homelab monitoring dashboard**
+
+*Advanced system monitoring with intelligent website uptime tracking and modern UI design*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
@@ -12,9 +14,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
-*Real-time system monitoring with modern UI design and comprehensive uptime tracking*
-
-[🆕 Latest Updates](#-latest-updates) • [🚀 Quick Start](#-quick-start) • [✨ Features](#-features) • [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) • [⚙️ Configuration](#%EF%B8%8F-configuration) • [🐳 Deployment](#-deployment-options) • [�️ Development](#%EF%B8%8F-development) • [🐛 Troubleshooting](#-troubleshooting)
+[🆕 Latest Updates](#-latest-updates) &#124; [🚀 Quick Start](#-quick-start) &#124; [✨ Features](#-features) &#124; [🛠️ Tech Stack](#%EF%B8%8F-tech-stack) &#124; [⚙️ Configuration](#%EF%B8%8F-configuration) &#124; [🤖 Automation](#-automation--integration) &#124; [🐳 Deployment](#-deployment-options) &#124; [🛠️ Development](#%EF%B8%8F-development) &#124; [🐛 Troubleshooting](#-troubleshooting)
 
 </div>
 
@@ -29,14 +29,15 @@
 5. [📋 Available Commands](#-available-commands)
 6. [⚙️ Configuration](#%EF%B8%8F-configuration)
 7. [🔧 API Reference](#-api-endpoints)
-8. [📋 System Requirements](#-system-requirements)
-9. [📁 Project Structure](#-project-structure)
-10. [🐳 Deployment Options](#-deployment-options)
-11. [🛠️ Development](#%EF%B8%8F-development)
-12. [🐛 Troubleshooting](#-troubleshooting)
-13. [🔒 Security & Best Practices](#-security--best-practices)
-14. [🤝 Contributing](#-contributing)
-15. [📞 Support & Contact](#-support--contact)
+8. [🤖 Automation & Integration](#-automation--integration)
+9. [📋 System Requirements](#-system-requirements)
+10. [📁 Project Structure](#-project-structure)
+11. [🐳 Deployment Options](#-deployment-options)
+12. [🛠️ Development](#%EF%B8%8F-development)
+13. [🐛 Troubleshooting](#-troubleshooting)
+14. [🔒 Security & Best Practices](#-security--best-practices)
+15. [🤝 Contributing](#-contributing)
+16. [📞 Support & Contact](#-support--contact)
 
 ---
 
@@ -351,8 +352,216 @@ NodePuls automatically monitors:
 - **🛡️ Smart Resource Usage**: System monitoring pauses when no clients connected
 - **🌐 Continuous Uptime Monitoring**: Website checks run 24/7 regardless of viewers
 - **📊 Dynamic Charts**: Real-time chart updates with adaptive scaling
-| `updateWebsiteOrder` | Client → Server | Reorder websites |
-| `clearWebsiteHistory` | Client → Server | Clear website history |
+
+---
+
+## 🤖 Automation & Integration
+
+NodePuls provides a REST API that enables automation from external tools and platforms:
+
+#### **Adding Websites Programmatically**
+```bash
+# Add a new website via API
+curl -X POST http://localhost:3020/api/websites \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My Home Server", "url": "https://192.168.1.100:8080"}'
+```
+
+#### **Home Assistant Integration**
+```yaml
+# configuration.yaml - Add websites to NodePuls from Home Assistant
+rest_command:
+  add_nodepuls_website:
+    url: "http://your-nodepuls-server:3020/api/websites"
+    method: POST
+    headers:
+      content-type: "application/json"
+    payload: '{"name": "{{ name }}", "url": "{{ url }}"}'
+
+# Example automation
+automation:
+  - alias: "Add new device to NodePuls monitoring"
+    trigger:
+      - platform: state
+        entity_id: device_tracker.new_device
+        to: "home"
+    action:
+      - service: rest_command.add_nodepuls_website
+        data:
+          name: "{{ trigger.to_state.attributes.friendly_name }}"
+          url: "http://{{ trigger.to_state.attributes.ip }}"
+```
+
+#### **Tasker (Android) Integration**
+```javascript
+// Tasker HTTP Request Action
+// URL: http://your-nodepuls-server:3020/api/websites
+// Method: POST
+// Headers: Content-Type: application/json
+// Body: {"name": "%website_name", "url": "%website_url"}
+
+// Example: Add current WiFi gateway to monitoring
+var gatewayIP = "%WIFI_GATEWAY";
+var deviceName = "%WIFI_SSID Gateway";
+var payload = JSON.stringify({
+    "name": deviceName,
+    "url": "http://" + gatewayIP
+});
+```
+
+#### **PowerShell Automation (Windows)**
+```powershell
+# Add website to NodePuls monitoring
+function Add-NodePulsWebsite {
+    param(
+        [string]$Name,
+        [string]$Url,
+        [string]$NodePulsServer = "http://localhost:3020"
+    )
+    
+    $body = @{
+        name = $Name
+        url = $Url
+    } | ConvertTo-Json
+    
+    try {
+        Invoke-RestMethod -Uri "$NodePulsServer/api/websites" -Method POST -Body $body -ContentType "application/json"
+        Write-Host "✅ Added $Name ($Url) to NodePuls monitoring"
+    } catch {
+        Write-Error "❌ Failed to add website: $($_.Exception.Message)"
+    }
+}
+
+# Example usage
+Add-NodePulsWebsite -Name "Router Admin" -Url "http://192.168.1.1"
+Add-NodePulsWebsite -Name "NAS WebUI" -Url "https://nas.local:5001"
+```
+
+#### **Python Integration**
+```python
+import requests
+import json
+
+def add_nodepuls_website(name, url, server="http://localhost:3020"):
+    """Add a website to NodePuls monitoring"""
+    endpoint = f"{server}/api/websites"
+    payload = {"name": name, "url": url}
+    
+    try:
+        response = requests.post(endpoint, json=payload)
+        response.raise_for_status()
+        print(f"✅ Added {name} ({url}) to NodePuls monitoring")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Failed to add website: {e}")
+        return None
+
+def get_system_status(server="http://localhost:3020"):
+    """Get current system status"""
+    try:
+        response = requests.get(f"{server}/api/system")
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Failed to get system status: {e}")
+        return None
+
+# Example usage
+add_nodepuls_website("Plex Server", "http://192.168.1.50:32400")
+add_nodepuls_website("Pi-hole", "http://192.168.1.2/admin")
+
+# Get current system metrics
+status = get_system_status()
+if status:
+    print(f"CPU: {status['cpu']['usage']}%")
+    print(f"Memory: {status['memory']['percentage']}%")
+```
+
+#### **Node-RED Integration**
+```json
+// HTTP Request Node Configuration
+{
+    "method": "POST",
+    "url": "http://your-nodepuls-server:3020/api/websites",
+    "headers": {"Content-Type": "application/json"},
+    "payload": {
+        "name": "{{msg.device_name}}",
+        "url": "{{msg.device_url}}"
+    }
+}
+```
+
+#### **API Response Examples**
+```json
+// Successful website addition
+{
+    "success": true,
+    "website": {
+        "id": 8,
+        "name": "My Home Server",
+        "url": "https://192.168.1.100:8080",
+        "status": "unknown",
+        "health_score": 100,
+        "created_at": "2025-01-15T10:30:00Z"
+    }
+}
+
+// Error response
+{
+    "error": "URL validation failed",
+    "details": "Invalid URL format"
+}
+```
+
+#### **Bulk Operations**
+```bash
+# Add multiple websites at once (bash script)
+#!/bin/bash
+NODEPULS_SERVER="http://localhost:3020"
+
+websites=(
+    "Router|http://192.168.1.1"
+    "NAS|http://192.168.1.10:5000"
+    "Pi-hole|http://192.168.1.2/admin"
+    "Home Assistant|http://192.168.1.5:8123"
+)
+
+for website in "${websites[@]}"; do
+    IFS='|' read -r name url <<< "$website"
+    curl -X POST "$NODEPULS_SERVER/api/websites" \
+         -H "Content-Type: application/json" \
+         -d "{\"name\": \"$name\", \"url\": \"$url\"}" \
+         -s | jq '.success // false' > /dev/null && \
+    echo "✅ Added $name" || echo "❌ Failed to add $name"
+done
+```
+
+#### **Health Check Automation**
+```bash
+# Check if NodePuls is healthy and all monitored sites are up
+#!/bin/bash
+NODEPULS_SERVER="http://localhost:3020"
+
+# Check NodePuls health
+health=$(curl -s "$NODEPULS_SERVER/api/health" | jq -r '.status // "unknown"')
+if [ "$health" != "ok" ]; then
+    echo "❌ NodePuls server is not healthy"
+    exit 1
+fi
+
+# Get websites status
+websites=$(curl -s "$NODEPULS_SERVER/api/websites")
+down_sites=$(echo "$websites" | jq -r '.[] | select(.status == "down") | .name')
+
+if [ -n "$down_sites" ]; then
+    echo "⚠️ Sites currently down:"
+    echo "$down_sites"
+    # Send notification (customize as needed)
+    # notify-send "NodePuls Alert" "Some monitored sites are down"
+else
+    echo "✅ All monitored sites are up"
+fi
+```
 
 ---
 
@@ -866,69 +1075,5 @@ Built with ❤️ by [Said Mrini](https://github.com/your-username)
 [⬆️ Back to Top](#nodepuls-)
 
 </div>
-
----
-
-## 🔍 Enhanced Monitoring System
-
-### 🛡️ **Redundant Website Checking**
-
-NodePuls implements a sophisticated 3-tier checking system to eliminate false "down" alerts:
-
-#### **Multi-Method Strategy**
-1. **HEAD Request** (Lightweight check)
-   - Fast, minimal bandwidth usage
-   - Supported by most web servers
-   - Quick response for healthy services
-
-2. **GET Request** (Full HTTP check)
-   - Complete HTTP transaction
-   - Handles servers that don't support HEAD
-   - Downloads actual content
-
-3. **Retry GET** (Final attempt)
-   - Additional attempt with fresh network conditions
-   - Catches temporary network hiccups
-   - Last chance before health degradation
-
-#### **🏥 Health Scoring System**
-
-Each website maintains a **dynamic health score (0-100%)**:
-
-- **Successful Check**: +10 health points
-- **Failed Check**: -15 health points
-- **Status Logic**: 
-  - ✅ **UP**: Health > 30% OR < 3 consecutive failures
-  - ❌ **DOWN**: Health ≤ 30% AND 2+ consecutive failures OR 3+ consecutive failures
-
-#### **🎯 Benefits**
-- **Reduces False Positives**: Temporary network issues won't trigger alerts
-- **External Site Stability**: Google, CloudFlare, etc. show consistent status
-- **Gradual Degradation**: Health declines over time vs instant failure
-- **Smart Recovery**: Quick recovery when services return to normal
-
-### 📊 **Dynamic Chart Visualization**
-
-Website analytics now feature **adaptive response time charts**:
-
-#### **Intelligent Thresholds**
-- **Fast (Green)**: ≤ 70% of average response time (min 100ms)
-- **OK (Orange)**: ≤ 150% of average response time (min 200ms)
-- **Slow (Red)**: > 150% of average response time
-
-#### **Adaptive Scaling**
-- **Minimum Height**: Even 5ms responses show as visible bars
-- **Dynamic Range**: Chart adapts to each website's performance characteristics
-- **Proportional Display**: No more tiny bars or chart overflow
-- **Per-Website Optimization**: Each site gets custom thresholds
-
-### ⚡ **Resource Optimization**
-
-Smart system monitoring that **adapts to usage**:
-
-- **Client-Aware**: System monitoring starts only when clients connect
-- **Auto-Shutdown**: CPU/Memory/Disk monitoring stops when no one is watching
-- **Always-On Website Monitoring**: Uptime checks continue 24/7 regardless of viewers
-- **Reduced Footprint**: Saves system resources during idle periods
 
 ---

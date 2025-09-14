@@ -488,55 +488,325 @@
 }
 
 .add-website-form {
-	background: rgba(15, 23, 42, 0.8);
+	background: rgba(15, 23, 42, 0.9);
 	border: 1px solid #475569;
 	border-radius: 8px;
-	padding: 1rem;
-	margin-bottom: 1rem;
-}
-
-.form-row {
+	padding: 1.5rem;
+	margin-bottom: 1.5rem;
 	display: flex;
-	gap: 0.5rem;
-	align-items: center;
+	flex-direction: column;
+	gap: 1rem;
+	margin-bottom: 1rem;
+	animation: formSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	transform-origin: top;
+	overflow: hidden;
+	backdrop-filter: blur(10px);
+	border: 1px solid #475569;
+	position: relative;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.form-row input {
+/* Gradient border effect using pseudo-element */
+.add-website-form::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	border-radius: 8px;
+	padding: 1px;
+	pointer-events: none;
+	opacity: 0.6;
+	transition: opacity 0.3s ease;
+}
+
+.add-website-form:hover::before {
+	opacity: 1;
+}
+
+/* Subtle breathing animation after form opens */
+.add-website-form.breathing {
+	animation: formSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+	           formBreathe 3s ease-in-out 0.6s infinite;
+}
+
+@keyframes formBreathe {
+	0%, 100% {
+		box-shadow: 
+			0 10px 25px rgba(0, 0, 0, 0.2),
+			0 4px 12px rgba(59, 130, 246, 0.1),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	}
+	50% {
+		box-shadow: 
+			0 12px 30px rgba(0, 0, 0, 0.25),
+			0 6px 16px rgba(59, 130, 246, 0.15),
+			inset 0 1px 0 rgba(255, 255, 255, 0.12);
+	}
+}
+
+/* Form opening animation keyframes */
+@keyframes formSlideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(-20px) scale(0.95);
+		max-height: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		margin-bottom: 0;
+	}
+	50% {
+		opacity: 0.7;
+		transform: translateY(-5px) scale(0.98);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		max-height: 500px;
+		padding-top: 1.5rem;
+		padding-bottom: 1.5rem;
+		margin-bottom: 1rem;
+	}
+}
+
+/* Form closing animation for when it's hidden */
+.add-website-form.closing {
+	animation: formSlideOut 0.3s cubic-bezier(0.32, 0, 0.67, 0);
+}
+
+@keyframes formSlideOut {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+		max-height: 500px;
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-20px) scale(0.95);
+		max-height: 0;
+		padding-top: 0;
+		padding-bottom: 0;
+		margin-bottom: 0;
+	}
+}
+
+/* Enhanced hover effect for the form */
+.add-website-form:hover {
+	border-color: #3b82f6;
+	box-shadow: 
+		0 15px 35px rgba(0, 0, 0, 0.25),
+		0 8px 20px rgba(59, 130, 246, 0.15),
+		inset 0 1px 0 rgba(255, 255, 255, 0.15);
+	transform: translateY(-2px);
+}
+
+.form-inputs {
+	display: flex;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	
+	/* Staggered animation for child elements */
+	animation: formElementsSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+/* Staggered animation for form elements */
+@keyframes formElementsSlideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.add-website-form input {
 	flex: 1;
+	min-width: 200px;
 	background: #374151;
 	border: 1px solid #4b5563;
-	border-radius: 4px;
-	padding: 0.5rem;
+	border-radius: 6px;
+	padding: 0.75rem;
 	color: #f8fafc;
 	font-size: 0.875rem;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	
+	/* Initial state for animation */
+	opacity: 0;
+	transform: translateY(15px);
+	animation: inputSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+	
+	/* Enhanced styling */
+	backdrop-filter: blur(5px);
+	box-shadow: 
+		0 2px 8px rgba(0, 0, 0, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.form-row input:focus {
+/* Input animation */
+@keyframes inputSlideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(15px) scale(0.95);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* Stagger the second input */
+.add-website-form input:nth-child(2) {
+	animation-delay: 0.25s;
+}
+
+.add-website-form input:focus {
 	outline: none;
 	border-color: #3b82f6;
+	box-shadow: 
+		0 0 0 3px rgba(59, 130, 246, 0.15),
+		0 4px 12px rgba(59, 130, 246, 0.1),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	transform: translateY(-1px) scale(1.02);
+	background: rgba(55, 65, 81, 0.9);
 }
 
-.form-row button {
+.add-website-form input:hover {
+	border-color: #6b7280;
+	transform: translateY(-1px);
+	box-shadow: 
+		0 4px 12px rgba(0, 0, 0, 0.15),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.add-website-form input::placeholder {
+	color: #9ca3af;
+	transition: color 0.3s ease;
+}
+
+.add-website-form input:focus::placeholder {
+	color: #60a5fa;
+}
+
+.form-actions {
+	display: flex;
+	flex-direction: row;
+	gap: 0.75rem;
+	justify-content: center;
+	flex-wrap: wrap;
+	
+	/* Staggered animation for buttons */
+	animation: formActionsSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+/* Button container animation */
+@keyframes formActionsSlideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.add-website-form button {
 	background: #3b82f6;
 	color: white;
 	border: none;
-	padding: 0.5rem 1rem;
-	border-radius: 4px;
+	padding: 0.75rem 1.5rem;
+	border-radius: 6px;
 	cursor: pointer;
 	font-size: 0.875rem;
-	transition: background-color 0.2s;
+	font-weight: 500;
+	transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+	display: flex;
+	flex: 1 1 0;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 100px;
+	justify-content: center;
+	
+	/* Initial state for animation */
+	opacity: 0;
+	transform: translateY(20px) scale(0.95);
+	animation: buttonSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+	
+	/* Enhanced styling */
+	box-shadow: 
+		0 4px 12px rgba(59, 130, 246, 0.25),
+		0 2px 6px rgba(0, 0, 0, 0.1);
+	position: relative;
+	overflow: hidden;
 }
 
-.form-row button:hover {
+/* Button animation */
+@keyframes buttonSlideIn {
+	0% {
+		opacity: 0;
+		transform: translateY(20px) scale(0.95);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* Stagger the second button (Cancel) */
+.add-website-form button[type="button"] {
+	animation-delay: 0.4s;
+}
+
+/* Button ripple effect */
+.add-website-form button::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0;
+	height: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.3);
+	transform: translate(-50%, -50%);
+	transition: width 0.6s, height 0.6s;
+}
+
+.add-website-form button:active::before {
+	width: 300px;
+	height: 300px;
+}
+
+.add-website-form button:hover {
 	background: #2563eb;
+	transform: translateY(-2px) scale(1.05);
+	box-shadow: 
+		0 8px 20px rgba(59, 130, 246, 0.35),
+		0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.form-row button[type="button"] {
+.add-website-form button:active {
+	transform: translateY(0) scale(1.02);
+	box-shadow: 
+		0 4px 12px rgba(59, 130, 246, 0.25),
+		0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add-website-form button[type="button"] {
 	background: #6b7280;
+	box-shadow: 
+		0 4px 12px rgba(107, 114, 128, 0.25),
+		0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.form-row button[type="button"]:hover {
+.add-website-form button[type="button"]:hover {
 	background: #4b5563;
+	transform: translateY(-2px) scale(1.05);
+	box-shadow: 
+		0 8px 20px rgba(107, 114, 128, 0.35),
+		0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .websites-grid {
@@ -1058,10 +1328,6 @@
 		flex-direction: column;
 	}
 
-	.action-btn {
-		flex: none;
-	}
-
 	.website-name {
 		font-size: 0.9rem;
 	}
@@ -1101,6 +1367,24 @@
 	.simple-chart {
 		height: 100px;
 		padding: 0.5rem;
+	}
+
+	/* Form responsive design */
+	.form-inputs {
+		flex-direction: column;
+	}
+
+	.add-website-form input {
+		min-width: auto;
+	}
+
+	.form-buttons {
+		justify-content: stretch;
+	}
+
+	.add-website-form button {
+		flex: 1;
+		min-width: auto;
 	}
 }
 
@@ -1269,7 +1553,7 @@
 }
 
 .form-group {
-	margin-bottom: 1.5rem;
+	margin-bottom: 1rem;
 }
 
 .form-group label {
@@ -1305,7 +1589,7 @@
 	display: flex;
 	justify-content: flex-end;
 	gap: 0.75rem;
-	margin-top: 2rem;
+	margin-top: 1.5rem;
 	padding-top: 1.5rem;
 	border-top: 1px solid #374151;
 }
@@ -1379,6 +1663,7 @@
 @media (max-width: 480px) {
 	.dashboard-header {
 		padding: 0.75rem 1rem;
+		position: static;
 	}
 	
 	.logo {

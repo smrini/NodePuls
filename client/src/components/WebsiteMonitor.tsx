@@ -492,7 +492,7 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 					<form
 						className="add-website-form"
 						onSubmit={handleAddWebsite}>
-						<div className="form-row">
+						
 							<input
 								type="text"
 								placeholder="Website name"
@@ -507,7 +507,7 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 							/>
 							<input
 								type="text"
-								placeholder="example.com (http:// will be added if needed)"
+								placeholder="Website URL"
 								value={newWebsite.url}
 								onChange={(e) =>
 									setNewWebsite({
@@ -517,15 +517,16 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 								}
 								required
 							/>
-							<button type="submit">Add</button>
-							<button
-								type="button"
-								onClick={() => setShowAddForm(false)}>
-								Cancel
-							</button>
-						</div>
-					</form>
-				)}
+							<div className="form-actions">
+								<button type="submit">Add</button>
+								<button
+									type="button"
+									onClick={() => setShowAddForm(false)}>
+									Cancel
+								</button>
+							</div>
+						</form>
+					)}
 
 				<div className="websites-grid">
 					{websiteOrder.length === 0 ? (
@@ -725,13 +726,11 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 								className="modal-body"
 								onSubmit={handleUpdateWebsite}>
 								<div className="form-group">
-									<label htmlFor="edit-website-name">
-										Name
-									</label>
 									<input
 										id="edit-website-name"
 										type="text"
 										value={editModal.name}
+										placeholder="Website Name"
 										onChange={(e) =>
 											setEditModal((prev) => ({
 												...prev,
@@ -743,13 +742,11 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 								</div>
 
 								<div className="form-group">
-									<label htmlFor="edit-website-url">
-										URL
-									</label>
 									<input
 										id="edit-website-url"
 										type="text"
 										value={editModal.url}
+										placeholder="Website URL"
 										onChange={(e) =>
 											setEditModal((prev) => ({
 												...prev,
@@ -764,7 +761,6 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 									<button
 										type="submit"
 										className="action-btn primary">
-										<Edit size={14} />
 										Update Website
 									</button>
 									<button

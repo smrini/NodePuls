@@ -15,6 +15,9 @@ import {
 	GripVertical,
 	Edit,
 	Trash2,
+	MoreVertical,
+	Download,
+	Upload,
 } from "lucide-react";
 
 interface WebsiteMonitorProps {
@@ -295,6 +298,22 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 		website: Website | null;
 	}>({ isOpen: false, website: null });
 	const [websiteOrder, setWebsiteOrder] = useState<Website[]>([]);
+	const [dropdownOpen, setDropdownOpen] = useState(false);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+
+	// Close dropdown when clicking outside
+	React.useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+				setDropdownOpen(false);
+			}
+		};
+
+		if (dropdownOpen) {
+			document.addEventListener('mousedown', handleClickOutside);
+			return () => document.removeEventListener('mousedown', handleClickOutside);
+		}
+	}, [dropdownOpen]);
 
 	// Update websiteOrder when the websites prop changes, but preserve user-defined order
 	React.useEffect(() => {
@@ -378,6 +397,84 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 		if (socket) {
 			socket.emit("removeWebsite", id);
 		}
+	};
+
+	const handleExportWebsites = () => {
+		const exportData = websiteOrder.map(website => ({
+			name: website.name,
+			url: website.url
+		}));
+		
+		const dataStr = JSON.stringify(exportData, null, 2);
+		const dataBlob = new Blob([dataStr], { type: 'application/json' });
+		
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(dataBlob);
+		link.download = `nodepuls-websites-${new Date().toISOString().split('T')[0]}.json`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		
+		setDropdownOpen(false);
+	};
+
+	const handleImportWebsites = () => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+		
+		input.onchange = (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0];
+			if (!file) return;
+			
+			const reader = new FileReader();
+			reader.onload = (event) => {
+				try {
+					const importData = JSON.parse(event.target?.result as string);
+					
+					if (!Array.isArray(importData)) {
+						alert('Invalid file format. Expected an array of websites.');
+						return;
+					}
+					
+					// Validate data structure
+					const validWebsites = importData.filter(item => 
+						item && typeof item === 'object' && 
+						typeof item.name === 'string' && 
+						typeof item.url === 'string' &&
+						item.name.trim() && item.url.trim()
+					);
+					
+					if (validWebsites.length === 0) {
+						alert('No valid websites found in the file.');
+						return;
+					}
+					
+					// Add websites via socket
+					if (socket) {
+						validWebsites.forEach(website => {
+							let url = website.url.trim();
+							if (!url.startsWith("http://") && !url.startsWith("https://")) {
+								url = "http://" + url;
+							}
+							
+							socket.emit("addWebsite", {
+								name: website.name.trim(),
+								url: url
+							});
+						});
+						
+						alert(`Successfully imported ${validWebsites.length} website(s).`);
+					}
+				} catch (error) {
+					alert('Error parsing JSON file. Please check the file format.');
+				}
+			};
+			reader.readAsText(file);
+		};
+		
+		input.click();
+		setDropdownOpen(false);
 	};
 
 	const getStatusIcon = (status: Website["status"]) => {
@@ -603,12 +700,14 @@ const WebsiteMonitor: React.FC<WebsiteMonitorProps> = ({
 		<DndProvider backend={HTML5Backend}>
 			<div className="website-monitor">
 				<div className="monitor-header">
-					<button
-						className="add-website-btn"
-						onClick={() => setShowAddForm(!showAddForm)}>
-						<Plus size={16} />
-						Add Website
-					</button>
+					<div className="header-actions">
+						<button
+							className="add-website-btn"
+							onClick={() => setShowAddForm(!showAddForm)}>
+							<Plus size={16} />
+							Add Website
+						</button>
+					</div>
 				</div>
 
 				{showAddForm && (

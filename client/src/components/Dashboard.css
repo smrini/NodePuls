@@ -7,6 +7,10 @@
 		sans-serif;
 	/* Remove mobile tap highlights */
 	-webkit-tap-highlight-color: transparent;
+	/* Disable bounce/rubber band scrolling */
+	overscroll-behavior: none;
+	overscroll-behavior-y: none;
+	overscroll-behavior-x: none;
 }
 
 /* Remove blue outlines from all interactive elements */
@@ -36,9 +40,6 @@
 	backdrop-filter: blur(10px);
 	border-bottom: 1px solid #334155;
 	padding: 1rem 2rem;
-	position: sticky;
-	top: 0;
-	z-index: 100;
 }
 
 .header-content {
@@ -125,11 +126,29 @@
 	backdrop-filter: blur(10px);
 	border: 1px solid #334155;
 	border-radius: 12px;
-	padding: 1.5rem .5rem 1.5rem 1.5rem;
+	padding: 1.5rem;
 	display: flex;
 	flex-direction: column;
 	max-height: calc(100vh - 9rem);
 	overflow: hidden;
+}
+
+/* Dynamic height adjustment for smaller screens */
+.websites-section.stretch-to-content {
+	max-height: none;
+	height: auto;
+	align-self: stretch;
+}
+
+/* Ensure the stretched websites section takes up appropriate space */
+.dashboard-grid:has(.websites-section.stretch-to-content) {
+	grid-template-rows: auto auto;
+	align-items: start;
+}
+
+.websites-section.stretch-to-content .websites-content {
+	flex: 1;
+	min-height: 300px; /* Ensure minimum usable height */
 }
 
 .stats-section h2,
@@ -139,41 +158,81 @@
 	font-size: 1.25rem;
 	font-weight: 600;
 	color: #e2e8f0;
-	border-bottom: 2px solid #3b82f6;
 	padding-bottom: 0.5rem;
 	flex-shrink: 0;
 }
+
+/* Section header with actions */
+.section-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 2px solid #3b82f6;
+	margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #e2e8f0;
+	padding-bottom: 0.5rem;
+	flex: 1;
+}
+
+.section-actions {
+	display: flex;
+	align-items: center;
+	margin-left: 1rem;
+	margin-bottom: 0.5rem; /* Align with h2 baseline */
+}
+
+.ExportImportButton {
+	background: rgba(51, 65, 85, 0.6);
+	border: 1px solid #475569;;
+	border-radius: 4px;
+	color: #cbd5e1;
+	cursor: pointer;
+	padding: 0.25rem;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+}
+
+.ExportImportButton:hover {
+	background: rgba(59, 130, 246, 0.1);
+	border-color: #3b82f6;
+	color: #3b82f6;
+}
+
+.ExportImportButton:focus {
+	outline: none;
+	box-shadow: none;
+	background: rgba(59, 130, 246, 0.1);
+	border-color: #3b82f6;
+	color: #3b82f6;
+}
+
 .websites-content {
 	flex: 1;
 	overflow-y: auto;
 	overflow-x: hidden;
+	/* Disable bounce scrolling in website section */
+	overscroll-behavior: none;
+	overscroll-behavior-y: none;
 }
 
-.website-monitor {
-	margin-right: 1rem;
+/* Hide scrollbars for websites content */
+.websites-content {
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
 .websites-content::-webkit-scrollbar {
-	width: 8px;
-}
-
-.websites-content::-webkit-scrollbar-track {
-	background: rgba(30, 41, 59, 0.4);
-	border-radius: 4px;
-}
-
-.websites-content::-webkit-scrollbar-thumb {
-	background: rgba(59, 130, 246, 0.6);
-	border-radius: 4px;
-	transition: background-color 0.2s ease;
-}
-
-.websites-content::-webkit-scrollbar-thumb:hover {
-	background: rgba(59, 130, 246, 0.8);
-}
-
-.websites-content::-webkit-scrollbar-thumb:active {
-	background: rgba(37, 99, 235, 0.9);
+	display: none; /* WebKit browsers */
 }
 
 /* Connection Status */
@@ -465,7 +524,93 @@
 .monitor-header {
 	display: flex;
 	justify-content: flex-end;
+	align-items: center;
 	margin-bottom: 1rem;
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.dropdown-container {
+	position: relative;
+}
+
+.dropdown-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(71, 85, 105, 0.8);
+	color: #cbd5e1;
+	border: 1px solid #475569;
+	padding: 0.5rem;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.875rem;
+	transition: all 0.2s;
+	width: 36px;
+	height: 36px;
+}
+
+.dropdown-toggle:hover {
+	background: rgba(71, 85, 105, 1);
+	color: #f8fafc;
+	border-color: #64748b;
+}
+
+.dropdown-menu {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	background: rgba(15, 23, 42, 0.95);
+	border: 1px solid #475569;
+	border-radius: 8px;
+	padding: 0.5rem 0;
+	margin-top: 0.25rem;
+	min-width: 160px;
+	z-index: 1000;
+	backdrop-filter: blur(10px);
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+	animation: dropdownSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-4px) scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: 100%;
+	background: none;
+	border: none;
+	color: #cbd5e1;
+	padding: 0.75rem 1rem;
+	cursor: pointer;
+	font-size: 0.875rem;
+	text-align: left;
+	transition: all 0.15s;
+}
+
+.dropdown-item:hover:not(:disabled) {
+	background: rgba(59, 130, 246, 0.1);
+	color: #60a5fa;
+}
+
+.dropdown-item:disabled {
+	color: #64748b;
+	cursor: not-allowed;
+	opacity: 0.5;
 }
 
 .add-website-btn {
@@ -1080,6 +1225,7 @@
 	justify-content: center;
 	z-index: 1000;
 	padding: 1rem;
+	overflow-y: auto;
 }
 
 .modal-content {
@@ -1090,13 +1236,17 @@
 	max-height: 90vh;
 	overflow: hidden;
 	box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+	margin: auto;
+	position: relative;
 }
 
 .analytics-modal {
 	width: 1100px;
 	max-width: 95vw;
-	max-height: 85vh;
+	max-height: 90vh;
 	margin: auto;
+	display: flex;
+	flex-direction: column;
 }
 
 .modal-header {
@@ -1105,6 +1255,7 @@
 	align-items: center;
 	padding: 1.5rem;
 	border-bottom: 1px solid #374151;
+	flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -1134,8 +1285,9 @@
 
 .modal-body {
 	padding: 1.5rem;
-	max-height: calc(90vh - 75px); /* Adjust based on header height */
+	flex: 1;
 	overflow-y: auto;
+	min-height: 0; /* Important for flex scrolling */
 }
 
 .analytics-overview {
@@ -1318,7 +1470,24 @@
 	color: #ef4444;
 }
 
-/* Modal Responsive */
+/* Modal Responsive - Laptop/Tablet sizes */
+@media (max-width: 1200px) and (min-width: 769px) {
+	.analytics-modal {
+		width: 90vw;
+		max-height: 90vh;
+		margin: 1rem;
+	}
+
+	.modal-body {
+		padding: 1.25rem;
+	}
+
+	.analytics-overview {
+		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+	}
+}
+
+/* Modal Responsive - Mobile */
 @media (max-width: 768px) {
 	.details-grid {
 		grid-template-columns: 1fr;
@@ -1338,7 +1507,8 @@
 
 	.analytics-modal {
 		width: 95vw;
-		height: 95vh;
+		max-height: 95vh;
+		margin: 0.5rem;
 	}
 
 	.modal-header {
@@ -1347,7 +1517,9 @@
 
 	.modal-body {
 		padding: 1rem;
-		max-height: calc(95vh - 80px);
+		flex: 1;
+		overflow-y: auto;
+		min-height: 0;
 	}
 
 	.analytics-overview {
@@ -1427,17 +1599,7 @@
 		padding: 1rem;
 	}
 	
-	/* Hide scrollbar on mobile devices */
-	.websites-content::-webkit-scrollbar {
-		display: none;
-		width: 0;
-	}
-	
-	/* For Firefox on mobile */
-	.websites-content {
-		scrollbar-width: none;
-		-ms-overflow-style: none;
-	}
+	/* Scrollbars are hidden globally */
 
 	/* Remove right margin on website monitors for better fit */
 	.website-monitor {
@@ -1639,25 +1801,9 @@
 		text-align: center;
 	}
 	
-	/* Ensure scrollbar is completely hidden on mobile phones */
-	.websites-content {
-		scrollbar-width: none !important;
-		-ms-overflow-style: none !important;
-	}
+	/* Scrollbars are hidden globally */
 	
-	.websites-content::-webkit-scrollbar {
-		display: none !important;
-		width: 0 !important;
-		background: transparent !important;
-	}
-	
-	.websites-content::-webkit-scrollbar-track {
-		display: none !important;
-	}
-	
-	.websites-content::-webkit-scrollbar-thumb {
-		display: none !important;
-	}
+	/* Scrollbars are hidden globally */
 }
 
 @media (max-width: 480px) {
@@ -1670,16 +1816,5 @@
 		height: 35px;
 	}
 	
-	/* Force hide scrollbar on small mobile screens */
-	.websites-content {
-		scrollbar-width: none !important;
-		-ms-overflow-style: none !important;
-		overflow: -moz-scrollbars-none !important;
-	}
-	
-	.websites-content::-webkit-scrollbar {
-		display: none !important;
-		width: 0 !important;
-		height: 0 !important;
-	}
+	/* Scrollbars are hidden globally */
 }

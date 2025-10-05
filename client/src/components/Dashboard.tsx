@@ -23,7 +23,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
 	const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
 	const [selectedNetworkInterface, setSelectedNetworkInterface] = useState<NetworkInterface | null>(null);
-	const [shouldStretchWebsites, setShouldStretchWebsites] = useState<boolean>(false);
+	const [shouldMatchLeftColumn, setShouldMatchLeftColumn] = useState<boolean>(false);
 	const [websiteDropdownOpen, setWebsiteDropdownOpen] = useState(false);
 	
 	const statsRef = useRef<HTMLElement>(null);
@@ -74,7 +74,15 @@ const Dashboard: React.FC<DashboardProps> = ({
 	// Effect to handle dynamic height adjustment for websites section
 	useEffect(() => {
 		const checkHeightAndAdjust = () => {
-			if (!statsRef.current || !chartsRef.current) return;
+			if (!statsRef.current || !chartsRef.current || !websitesRef.current) return;
+
+			// Only apply height matching logic on desktop screens (>1024px)
+			const isDesktop = window.innerWidth > 1024;
+			
+			if (!isDesktop) {
+				setShouldMatchLeftColumn(false);
+				return;
+			}
 
 			const statsHeight = statsRef.current.offsetHeight;
 			const chartsHeight = chartsRef.current.offsetHeight;
@@ -83,9 +91,18 @@ const Dashboard: React.FC<DashboardProps> = ({
 			// Get available viewport height (minus header and padding)
 			const availableHeight = window.innerHeight - 140; // Approximate header + padding
 			
-			// If left column content exceeds available height, stretch websites section
-			const shouldStretch = totalLeftColumnHeight > availableHeight;
-			setShouldStretchWebsites(shouldStretch);
+			// Determine if we should match left column height or use fixed height
+			// Only on desktop: if left column is taller than viewport, match its height
+			const shouldMatch = totalLeftColumnHeight > availableHeight;
+			setShouldMatchLeftColumn(shouldMatch);
+
+			// Set CSS custom property for the height
+			if (websitesRef.current) {
+				websitesRef.current.style.setProperty(
+					'--left-column-height',
+					`${totalLeftColumnHeight}px`
+				);
+			}
 		};
 
 		// Initial check
@@ -257,7 +274,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
 					<section 
 						ref={websitesRef} 
-						className={`websites-section ${shouldStretchWebsites ? 'stretch-to-content' : ''}`}
+						className={`websites-section ${shouldMatchLeftColumn ? 'match-left-column' : ''}`}
 					>
 						<div className="section-header">
 							<h2>Website Monitoring</h2>

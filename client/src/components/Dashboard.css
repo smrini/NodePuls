@@ -1,3 +1,14 @@
+/* Global scrollbar hiding for all browsers */
+* {
+	/* Hide scrollbar for Chrome, Safari and Opera */
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* Internet Explorer and Edge */
+}
+
+*::-webkit-scrollbar {
+	display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+}
+
 /* Dashboard Layout */
 .dashboard {
 	min-height: 100vh;
@@ -81,7 +92,7 @@
 }
 
 .dashboard-main {
-	padding: 2rem;
+	padding: 1.5rem;
 	max-width: 1400px;
 	margin: 0 auto;
 }
@@ -91,6 +102,7 @@
 	grid-template-columns: 2fr 1fr;
 	grid-template-rows: auto auto;
 	gap: 2rem;
+	align-items: start; /* Prevent grid items from stretching to match tallest */
 }
 
 .stats-section {
@@ -129,26 +141,16 @@
 	padding: 1.5rem;
 	display: flex;
 	flex-direction: column;
+	/* Default: Fixed height for large screens */
+	height: calc(100vh - 9rem);
 	max-height: calc(100vh - 9rem);
-	overflow: hidden;
+	min-height: 400px;
 }
 
-/* Dynamic height adjustment for smaller screens */
-.websites-section.stretch-to-content {
-	max-height: none;
-	height: auto;
-	align-self: stretch;
-}
-
-/* Ensure the stretched websites section takes up appropriate space */
-.dashboard-grid:has(.websites-section.stretch-to-content) {
-	grid-template-rows: auto auto;
-	align-items: start;
-}
-
-.websites-section.stretch-to-content .websites-content {
-	flex: 1;
-	min-height: 300px; /* Ensure minimum usable height */
+/* When left column is taller than viewport, match its height */
+.websites-section.match-left-column {
+	height: var(--left-column-height);
+	max-height: var(--left-column-height);
 }
 
 .stats-section h2,
@@ -169,6 +171,7 @@
 	align-items: center;
 	border-bottom: 2px solid #3b82f6;
 	margin-bottom: 1.5rem;
+	flex-shrink: 0; /* Prevent header from shrinking */
 }
 
 .section-header h2 {
@@ -223,17 +226,11 @@
 	/* Disable bounce scrolling in website section */
 	overscroll-behavior: none;
 	overscroll-behavior-y: none;
+	/* Ensure the content area takes remaining space and scrolls */
+	min-height: 0; /* Important: allows flex child to shrink below content size */
 }
 
-/* Hide scrollbars for websites content */
-.websites-content {
-	scrollbar-width: none; /* Firefox */
-	-ms-overflow-style: none; /* Internet Explorer 10+ */
-}
 
-.websites-content::-webkit-scrollbar {
-	display: none; /* WebKit browsers */
-}
 
 /* Connection Status */
 .connection-status {
@@ -1595,11 +1592,18 @@
 	.websites-section {
 		grid-column: 1;
 		grid-row: auto;
-		max-height: none;
+		/* On mobile, use a fixed height that works well */
+		height: 50vh;
+		max-height: 50vh;
+		min-height: 400px;
 		padding: 1rem;
 	}
 	
-	/* Scrollbars are hidden globally */
+	/* Override the dynamic height matching on mobile */
+	.websites-section.match-left-column {
+		height: 50vh;
+		max-height: 50vh;
+	}
 
 	/* Remove right margin on website monitors for better fit */
 	.website-monitor {
@@ -1801,9 +1805,7 @@
 		text-align: center;
 	}
 	
-	/* Scrollbars are hidden globally */
-	
-	/* Scrollbars are hidden globally */
+
 }
 
 @media (max-width: 480px) {
@@ -1815,6 +1817,4 @@
 	.logo {
 		height: 35px;
 	}
-	
-	/* Scrollbars are hidden globally */
 }

@@ -10,6 +10,7 @@ class UptimeMonitor {
 		this.websites = new Map(); // Keep in-memory cache for quick access
 		this.checkTimeout = config.websiteCheckTimeout;
 		this.maxHistory = config.maxWebsiteHistory;
+		this.idCounter = 0; // Counter to prevent ID collisions during rapid imports
 	}
 
 	async init() {
@@ -44,7 +45,12 @@ class UptimeMonitor {
 	}
 
 	async addWebsite(name, url) {
-		const id = Date.now().toString();
+		// Generate unique ID with timestamp, counter, and random component to prevent collisions
+		const timestamp = Date.now();
+		const counter = ++this.idCounter;
+		const random = Math.floor(Math.random() * 1000);
+		const id = `${timestamp}_${counter}_${random}`;
+		
 		const website = {
 			id,
 			name,

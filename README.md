@@ -42,7 +42,10 @@
 ---
 
 ## 🆕 Latest Updates:
-- 🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
+- �📤 **Website Import/Export**: JSON-based bulk website management with drag-and-drop reordering
+- 🎨 **Hidden Scrollbars**: Clean UI with globally hidden scrollbars while maintaining scroll functionality
+- 🔄 **Unique ID Generation**: Fixed import collision issues with timestamp + counter + random ID system
+- �🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
 - 🏥 **Health Scoring System**: Gradual health degradation prevents single-failure false positives
 - 📊 **Adaptive Chart Visualization**: Dynamic scaling with per-website performance thresholds  
 - ⚡ **Smart Resource Management**: System monitoring only runs when clients are connected
@@ -69,7 +72,7 @@ npm run install:all
 
 **📝 Note**: The repository includes a sample `homelab.db` with example websites for immediate testing. This contains no sensitive data and helps new users get started quickly. Example sites include Google, Nextcloud, Home Assistant, and other common homelab services.
 
-**🆕 Recent Improvements**: NodePuls now features advanced redundant website monitoring that eliminates false "Down" alerts for external sites, adaptive chart visualization with intelligent scaling, and optimized resource usage that only monitors system resources when clients are connected.
+**🆕 Recent Improvements**: NodePuls now features JSON-based website import/export with bulk management, globally hidden scrollbars for a clean interface, advanced redundant website monitoring that eliminates false "Down" alerts, adaptive chart visualization with intelligent scaling, and optimized resource usage that only monitors system resources when clients are connected.
 
 ### 2️⃣ Development
 
@@ -112,19 +115,24 @@ npm start       # Start with production environment
 - **Redundant Monitoring**: 3-tier checking system with intelligent fallback and 10-second timeouts
 - **Smart Status Logic**: Sites marked down only after multiple consecutive failures AND low health score
 - **Response Time Analytics**: Dynamic chart scaling with adaptive thresholds per website
+- **Import/Export Functionality**: JSON-based bulk website management with validation and error handling
+- **Drag & Drop Reordering**: Persistent website order with database-backed sort functionality
+- **Unique ID System**: Collision-resistant ID generation (timestamp + counter + random) for rapid imports
 - **Port Number Display**: Proper formatting for IP addresses with custom ports (e.g., 192.168.1.100:8080)
 - **Uptime Tracking**: Monitor multiple websites simultaneously with TCP ping + HTTP checks
 - **Status History**: Historical uptime data with SQLite storage and automatic cleanup
 - **Smart Analytics**: Comprehensive uptime statistics and response time trends with intelligent scaling
-- **Drag & Drop Management**: Reorder monitored websites with intuitive interface
 - **Client-Aware Resource Management**: System monitoring starts/stops based on client connections
 
 ### 🎨 **Modern UI/UX**
-- **Animated Logo**: Custom NodePuls branding with hover effects
+- **Hidden Scrollbars**: Clean interface with globally hidden scrollbars across all browsers
+- **Animated Logo**: Custom NodePuls branding with hover effects and responsive scaling
 - **Dark Theme**: Professional dark interface optimized for 24/7 monitoring
-- **Responsive Design**: Perfect on desktop, tablet, and mobile devices
+- **Responsive Design**: Perfect on desktop, tablet, and mobile devices with adaptive grid layouts
 - **Live Updates**: WebSocket-powered real-time data without page refreshes
 - **Interactive Charts**: Hover effects, smooth animations, and color-coded metrics
+- **Touch-Optimized**: Disabled tap highlights and optimized mobile interactions
+- **Dynamic Height Management**: Automatic section height adjustment for optimal space usage
 
 ### ⚡ **Performance & Reliability**
 - **Lightweight**: Minimal resource footprint ideal for homelab environments
@@ -253,6 +261,11 @@ HEALTH_SCORE_FAILURE_PENALTY=15  # Health points lost on failed check
 HEALTH_SCORE_DOWN_THRESHOLD=30   # Health % threshold for marking site down
 MIN_CONSECUTIVE_FAILURES=2       # Minimum consecutive failures required
 
+# 🔄 Website Management (ENHANCED)
+ENABLE_WEBSITE_ORDERING=true     # Enable drag-and-drop website reordering
+IMPORT_VALIDATION=strict         # JSON import validation level (strict/loose)
+MAX_BULK_IMPORT=50              # Maximum websites per import operation
+
 # ⏱️ System Monitoring  
 MONITOR_INTERVAL=5000            # System metrics update interval (ms)
 SYSTEM_UPDATE_INTERVAL=5000      # System monitoring interval (ms)
@@ -302,6 +315,12 @@ NodePuls automatically monitors:
    - Validation ensures proper URL format before adding
 3. 📊 Monitor response times and uptime percentage automatically
 
+**Bulk Management:**
+- 📥 **Import**: Click the three-dot menu → "Import" to upload JSON files with website lists
+- 📤 **Export**: Click the three-dot menu → "Export" to download current website configuration
+- 🔄 **Drag & Drop**: Reorder websites by dragging cards; order persists across sessions
+- 🎯 **JSON Format**: `[{"name": "Website Name", "url": "https://example.com"}]`
+
 **Enhanced URL Display:**
 - **Port Preservation**: IP addresses with custom ports display correctly (e.g., `192.168.1.100:8080`)
 - **Smart Formatting**: Shows hostname/IP with port when not default (80/443)
@@ -337,11 +356,11 @@ NodePuls automatically monitors:
 | Event | Direction | Description |
 |-------|-----------|-------------|
 | `systemUpdate` | Server → Client | Real-time system metrics (only when clients connected) |
-| `websites` | Server → Client | Updated website list with health scores |
-| `addWebsite` | Client → Server | Add new website with URL validation |
+| `websites` | Server → Client | Updated website list with health scores and sort order |
+| `addWebsite` | Client → Server | Add new website with URL validation and unique ID generation |
 | `removeWebsite` | Client → Server | Remove website by ID |
 | `updateWebsite` | Client → Server | Update website details (name, URL) |
-| `updateWebsiteOrder` | Client → Server | Reorder websites via drag & drop |
+| `updateWebsiteOrder` | Client → Server | Reorder websites via drag & drop with persistent storage |
 | `clearWebsiteHistory` | Client → Server | Clear historical data for specific website |
 | `error` | Server → Client | Error messages for failed operations |
 
@@ -535,6 +554,8 @@ for website in "${websites[@]}"; do
     echo "✅ Added $name" || echo "❌ Failed to add $name"
 done
 ```
+
+**💡 Pro Tip**: Use the dashboard's import/export feature for easier bulk management! The improved unique ID generation system now handles rapid imports without collisions.
 
 #### **Health Check Automation**
 ```bash
@@ -775,10 +796,11 @@ npm run start:prod
 ### 🔧 Key Components
 
 1. **SystemMonitor**: Collects CPU, memory, disk, network, and temperature data using `systeminformation`
-2. **UptimeMonitor**: Manages website checks with TCP ping and HTTP response time measurement
-3. **DatabaseService**: Handles SQLite operations with proper table management and migrations
-4. **Dashboard**: React component orchestrating real-time data visualization
+2. **UptimeMonitor**: Manages website checks with health scoring, unique ID generation, and 3-tier checking
+3. **DatabaseService**: Handles SQLite operations with migrations, website ordering, and history management
+4. **Dashboard**: React component with import/export, drag-and-drop, and real-time data visualization
 5. **ResourceCharts**: Interactive charts showing system performance with 50-point history
+6. **WebsiteMonitor**: Advanced monitoring with JSON import/export and persistent drag-and-drop ordering
 
 ---
 
@@ -911,7 +933,24 @@ chmod +x rebuild-docker.sh
 docker --version
 ```
 
-#### **🔧 Docker Container Troubleshooting**
+#### **� Website Import Issues**
+```bash
+# 🔍 Issue: Import fails after a few websites with "UNIQUE constraint failed" error
+
+# ✅ Solution: Fixed with enhanced ID generation system
+# - Uses timestamp + counter + random number for unique IDs
+# - Prevents collisions during rapid imports
+# - All 10+ websites now import successfully
+
+# 🔍 Example import format:
+[
+  {"name": "Google", "url": "https://www.google.com"},
+  {"name": "Home Assistant", "url": "http://ha.home.local"},
+  {"name": "Nextcloud", "url": "http://cloud.home.local"}
+]
+```
+
+#### **�🔧 Docker Container Troubleshooting**
 ```bash
 # 🛠️ Use the troubleshooting script:
 chmod +x troubleshoot.sh

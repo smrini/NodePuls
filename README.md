@@ -10,7 +10,7 @@
 
 ## 📸 Dashboard Preview
 
-![NodePuls Dashboard](https://i.imgur.com/6KZs3Nl.png)
+![NodePuls Dashboard](https://imgur.com/78OszFZ.png)
 
 *Real-time system monitoring with beautiful charts, website uptime tracking, and modern dark theme interface*
 

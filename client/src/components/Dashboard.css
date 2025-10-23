@@ -1484,8 +1484,26 @@
 	}
 }
 
-/* Modal Responsive - Mobile */
+/* Mobile Phone Responsive Design */
 @media (max-width: 768px) {
+	/* Ensure websites section expands fully on phones */
+	.websites-section {
+		height: auto !important;
+		max-height: none !important;
+		min-height: 300px;
+	}
+	
+	.websites-section.match-left-column {
+		height: auto !important;
+		max-height: none !important;
+	}
+	
+	/* Remove all overflow constraints on mobile */
+	.websites-content {
+		overflow: visible !important;
+		min-height: auto;
+	}
+
 	.details-grid {
 		grid-template-columns: 1fr;
 	}
@@ -1592,17 +1610,23 @@
 	.websites-section {
 		grid-column: 1;
 		grid-row: auto;
-		/* On mobile, use a fixed height that works well */
-		height: 50vh;
-		max-height: 50vh;
+		/* On mobile/small screens, remove height constraints to show all websites */
+		height: auto;
+		max-height: none;
 		min-height: 400px;
 		padding: 1rem;
 	}
 	
 	/* Override the dynamic height matching on mobile */
 	.websites-section.match-left-column {
-		height: 50vh;
-		max-height: 50vh;
+		height: auto;
+		max-height: none;
+	}
+
+	/* On mobile, disable scrolling in websites-content to show all websites */
+	.websites-content {
+		overflow-y: visible;
+		overflow-x: visible;
 	}
 
 	/* Remove right margin on website monitors for better fit */

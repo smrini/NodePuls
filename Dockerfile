@@ -2,6 +2,11 @@
 # Use a specific Node.js version for stability. node:20-alpine is the current LTS.
 FROM node:20-alpine AS builder
 
+# Add labels for metadata
+LABEL maintainer="Said Mrini <https://github.com/smrini>"
+LABEL version="1.7.3"
+LABEL description="A beautiful, lightweight real-time homelab monitoring dashboard"
+
 # Set the working directory for the application
 WORKDIR /usr/src/app
 
@@ -50,6 +55,11 @@ RUN apk del python3-dev py3-setuptools make g++ git
 # Use a lighter Node.js base image for production if possible, or stick to alpine.
 # node:20-alpine is still a good choice for production due to its small size.
 FROM node:20-alpine AS production
+
+# Add labels for metadata
+LABEL maintainer="Said Mrini <https://github.com/smrini>"
+LABEL version="1.7.3"
+LABEL description="A beautiful, lightweight real-time homelab monitoring dashboard"
 
 # Set the working directory
 WORKDIR /usr/src/app

@@ -15,6 +15,10 @@ const parseEnvVar = {
 	string: (value, defaultValue) => value || defaultValue,
 };
 
+// Logging configuration
+const logLevel = parseEnvVar.string(process.env.LOG_LEVEL, process.env.NODE_ENV === "production" ? "info" : "debug");
+const enableVerboseLogging = parseEnvVar.bool(process.env.ENABLE_VERBOSE_LOGGING, process.env.NODE_ENV !== "production");
+
 // Get server port for dynamic URL generation
 const serverPort = parseEnvVar.int(process.env.PORT, 3020);
 
@@ -123,6 +127,13 @@ const config = {
 			process.env.ENABLE_HTTPS_REDIRECT,
 			false
 		),
+	},
+
+	// Logging configuration
+	logging: {
+		level: logLevel,
+		enableVerbose: enableVerboseLogging,
+		production: process.env.NODE_ENV === "production"
 	},
 };
 

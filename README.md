@@ -8,7 +8,14 @@
 
 *Advanced system monitoring with intelligent website uptime tracking and modern UI design*
 
+## 📸 Dashboard Preview
+
+![NodePuls Dashboard](https://i.imgur.com/6KZs3Nl.png)
+
+*Real-time system monitoring with beautiful charts, website uptime tracking, and modern dark theme interface*
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-1.7.3-brightgreen.svg)](https://github.com/smrini/NodePuls/releases)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19+-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
@@ -28,7 +35,7 @@
 4. [🛠️ Tech Stack](#%EF%B8%8F-tech-stack)
 5. [📋 Available Commands](#-available-commands)
 6. [⚙️ Configuration](#%EF%B8%8F-configuration)
-7. [🔧 API Reference](#-api-endpoints)
+7. [🔧 API Reference](#-api-reference)
 8. [🤖 Automation & Integration](#-automation--integration)
 9. [📋 System Requirements](#-system-requirements)
 10. [📁 Project Structure](#-project-structure)
@@ -42,10 +49,10 @@
 ---
 
 ## 🆕 Latest Updates:
-- �📤 **Website Import/Export**: JSON-based bulk website management with drag-and-drop reordering
+- 📤 **Website Import/Export**: JSON-based bulk website management with drag-and-drop reordering
 - 🎨 **Hidden Scrollbars**: Clean UI with globally hidden scrollbars while maintaining scroll functionality
 - 🔄 **Unique ID Generation**: Fixed import collision issues with timestamp + counter + random ID system
-- �🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
+- 🛡️ **Redundant Website Monitoring**: Eliminates false "Down" alerts with 3-tier checking (HEAD → GET → Retry)
 - 🏥 **Health Scoring System**: Gradual health degradation prevents single-failure false positives
 - 📊 **Adaptive Chart Visualization**: Dynamic scaling with per-website performance thresholds  
 - ⚡ **Smart Resource Management**: System monitoring only runs when clients are connected
@@ -63,8 +70,8 @@
 
 ```bash
 # Clone repository
-git clone <your-repository-url> nodepuls
-cd ServerDasboard
+git clone https://github.com/smrini/NodePuls.git
+cd NodePuls
 
 # Install all dependencies (client + server)
 npm run install:all
@@ -103,23 +110,23 @@ npm start       # Start with production environment
 ## ✨ Features
 
 ### 🖥️ **System Monitoring**
-- **Real-time Metrics**: CPU, Memory, Disk, Network usage with live updates every 5 seconds
-- **Network Interface Selection**: Monitor specific network adapters with dropdown selection
+- **Real-time Metrics**: CPU usage, CPU temperature, RAM usage, Disks, Network usage with live updates every 5 seconds
 - **System Uptime**: Track server uptime with formatted display (days, hours, minutes)
+- **Device Selection**: Monitor specific network adapters and disks with dropdown selection
 - **Resource Charts**: Beautiful animated charts showing usage trends with 50-point history
-- **Temperature Monitoring**: CPU temperature tracking (when supported)
 
 ### 🌐 **Advanced Website Monitoring**
+- **Integrated Website Launcher**: Add, monitor, and launch websites directly from the dashboard with one-click access to your homelab services
+- **Import/Export Functionality**: JSON-based bulk website management with validation and error handling
+- **Drag & Drop Reordering**: Persistent website order with database-backed sort functionality
+- **Uptime Tracking**: Monitor multiple websites simultaneously with TCP ping + HTTP checks
 - **Multi-Method Checking**: HEAD → GET → Retry strategy for maximum reliability
 - **Health Scoring System**: Gradual health degradation prevents false "down" alerts (eliminates Google/Cloudflare false positives)
 - **Redundant Monitoring**: 3-tier checking system with intelligent fallback and 10-second timeouts
 - **Smart Status Logic**: Sites marked down only after multiple consecutive failures AND low health score
 - **Response Time Analytics**: Dynamic chart scaling with adaptive thresholds per website
-- **Import/Export Functionality**: JSON-based bulk website management with validation and error handling
-- **Drag & Drop Reordering**: Persistent website order with database-backed sort functionality
 - **Unique ID System**: Collision-resistant ID generation (timestamp + counter + random) for rapid imports
 - **Port Number Display**: Proper formatting for IP addresses with custom ports (e.g., 192.168.1.100:8080)
-- **Uptime Tracking**: Monitor multiple websites simultaneously with TCP ping + HTTP checks
 - **Status History**: Historical uptime data with SQLite storage and automatic cleanup
 - **Smart Analytics**: Comprehensive uptime statistics and response time trends with intelligent scaling
 - **Client-Aware Resource Management**: System monitoring starts/stops based on client connections
@@ -185,21 +192,6 @@ npm run clean        # Remove build artifacts and temp files
 npm test            # Run React component tests
 npm run test:ci     # Run tests once without watch mode
 npm run test:all    # Run tests with watch mode
-```
-
-### 🐳 Docker Utility Scripts
-```bash
-# Linux/macOS - Quick container rebuild
-chmod +x rebuild-docker.sh && ./rebuild-docker.sh
-
-# Linux/macOS - Fix network monitoring issues
-chmod +x fix-network-monitoring.sh && ./fix-network-monitoring.sh
-
-# Linux/macOS - Comprehensive troubleshooting
-chmod +x troubleshoot.sh && ./troubleshoot.sh
-
-# Windows PowerShell - Quick container rebuild
-.\rebuild-docker.ps1
 ```
 
 ### 🔧 Cross-Platform Improvements
@@ -613,7 +605,7 @@ fi
 ## 📁 Project Structure
 
 ```
-ServerDasboard/
+NodePuls/
 ├── 📁 client/                   # React 19 + TypeScript frontend
 │   ├── 📁 public/               # Static assets
 │   │   ├── 🎨 nodepuls.svg      # Custom NodePuls logo
@@ -639,10 +631,10 @@ ServerDasboard/
 │   │   └── 🗄️ homelab.db            # Sample database with example websites
 │   ├── 📁 public/               # Built React app (production)
 │   └── 🚀 index.js              # Express server entry point
-├── � scripts/                  # Build and utility scripts
+├── 📁 scripts/                  # Build and utility scripts
 │   ├── 🔧 copy-build.js         # Cross-platform build file copying
 │   └── 🧹 clean.js              # Clean build artifacts
-├── �🐳 docker-compose.yml        # Docker deployment configuration
+├── 🐳 docker-compose.yml        # Docker deployment configuration
 ├── 🐳 Dockerfile               # Multi-stage Docker build
 ├── ⚙️ config.js                 # Centralized configuration
 ├── ⚙️ env-loader.js             # Environment variable loader
@@ -652,20 +644,23 @@ ServerDasboard/
 
 ---
 
-## � Deployment Options
+## Deployment Options
 
 ### 🐳 Docker Deployment (Recommended)
 
 #### **Quick Start**
 ```bash
-# 1️⃣ Clone and navigate
-git clone <repository-url> nodepuls
-cd ServerDasboard
+# 1️⃣ Clone and navigate to NodePuls Directory
+git clone https://github.com/smrini/NodePuls.git
+cd NodePuls
 
-# 2️⃣ Start with Docker Compose
-docker compose up --build
+# 2️⃣ Build the website with Docker Compose
+docker compose build --no-cache
 
-# 3️⃣ Access at http://server-ip:3020
+# 3️⃣ Start the docker container
+docker compose up -d
+
+# 4️⃣ Access it at http://server-ip:3020
 ```
 
 #### **Production Configuration**
@@ -696,7 +691,7 @@ Create and manage NodePuls as a system service:
 
 ```bash
 # Create service file
-sudo nano /etc/systemd/system/nodepuls.service
+sudo nano /etc/systemd/system/NodePuls.service
 
 # Service configuration
 [Unit]
@@ -706,7 +701,7 @@ After=network.target
 [Service]
 Type=simple
 User=homelab
-WorkingDirectory=/opt/nodepuls
+WorkingDirectory=/opt/NodePuls
 ExecStart=/usr/bin/node server/index.js
 Restart=always
 RestartSec=10
@@ -718,8 +713,8 @@ WantedBy=multi-user.target
 
 # Enable and start
 sudo systemctl daemon-reload
-sudo systemctl enable nodepuls
-sudo systemctl start nodepuls
+sudo systemctl enable NodePuls
+sudo systemctl start NodePuls
 ```
 
 ---
@@ -733,7 +728,7 @@ For advanced process management with monitoring and clustering:
 npm install -g pm2
 
 # Start application
-pm2 start server/index.js --name nodepuls
+pm2 start server/index.js --name NodePuls
 
 # Setup auto-restart on boot
 pm2 startup
@@ -751,8 +746,8 @@ pm2 monit
 
 ```bash
 # Fork and clone the repository
-git clone https://github.com/your-username/nodepuls.git
-cd ServerDasboard
+git clone https://github.com/smrini/NodePuls.git
+cd NodePuls
 
 # Install dependencies (cross-platform)
 npm run install:all
@@ -861,7 +856,7 @@ volumes:
 # Note: Host networking is essential for accurate network monitoring
 ```
 
-#### **� Website False "Down" Alerts**
+#### **🎯 Website False "Down" Alerts**
 ```bash
 # 🔍 Issue: External sites like Google or Cloudflare showing as "Down" intermittently
 
@@ -901,7 +896,7 @@ apt-get install python3 make g++
 xcode-select --install
 ```
 
-#### **� Charts Not Scaling Properly**
+#### **📈 Charts Not Scaling Properly**
 ```bash
 # 🔍 Issue: Response time charts showing tiny bars or poor scaling
 
@@ -917,7 +912,7 @@ xcode-select --install
 # - Automatic minimum height for visibility
 ```
 
-#### **�🐳 Docker Build Failures (Python distutils)**
+#### **🐳 Docker Build Failures (Python distutils)**
 ```bash
 # 🔍 Issue: Docker build fails with "ModuleNotFoundError: No module named 'distutils'"
 
@@ -933,7 +928,7 @@ chmod +x rebuild-docker.sh
 docker --version
 ```
 
-#### **� Website Import Issues**
+#### **📥 Website Import Issues**
 ```bash
 # 🔍 Issue: Import fails after a few websites with "UNIQUE constraint failed" error
 
@@ -950,7 +945,7 @@ docker --version
 ]
 ```
 
-#### **�🔧 Docker Container Troubleshooting**
+#### **🔧 Docker Container Troubleshooting**
 ```bash
 # 🛠️ Use the troubleshooting script:
 chmod +x troubleshoot.sh
@@ -1045,7 +1040,13 @@ cp server/data/homelab.db server/data/homelab.db.backup  # Backup database
 
 ## 🤝 Contributing
 
-### 🔄 Pull Request Process
+### � Before Contributing
+
+- 📖 **Read the [CHANGELOG.md](CHANGELOG.md)** to understand recent changes
+- 🔍 **Check [GitHub Issues](https://github.com/smrini/NodePuls/issues)** for known issues or feature requests
+- 💡 **Open an issue** to discuss major changes before starting work
+
+### �🔄 Pull Request Process
 
 1. **Update Documentation**: Update README if needed
 2. **Test Changes**: Ensure all functionality works
@@ -1067,9 +1068,9 @@ cp server/data/homelab.db server/data/homelab.db.backup  # Backup database
 
 ### 💬 Getting Help
 
-- 📖 **Documentation**: This comprehensive README + `CODEBASE_ANALYSIS.md`
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/your-repo/issues)
-- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/your-repo/discussions)
+- 📖 **Documentation**: This comprehensive README
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/smrini/NodePuls/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/smrini/NodePuls/discussions)
 
 ### 🌟 Show Your Support
 
@@ -1109,7 +1110,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
 **NodePuls** - *Beautiful homelab monitoring made simple* 🚀
 
-Built with ❤️ by [Said Mrini](https://github.com/your-username)
+Built with ❤️ by [Said Mrini](https://github.com/smrini)
 
 [⬆️ Back to Top](#nodepuls-)
 

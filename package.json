@@ -1,7 +1,7 @@
 {
   "name": "nodepuls",
-  "version": "1.0.0",
-  "description": "NodePuls - Lightweight homelab monitoring dashboard with real-time system stats and uptime tracking",
+  "version": "1.7.3",
+  "description": "A beautiful, lightweight real-time homelab monitoring dashboard",
   "main": "server/index.js",
   "scripts": {
     "dev": "npm run build && npm run server",
@@ -26,10 +26,26 @@
     "monitoring",
     "uptime",
     "server",
-    "nodejs"
+    "nodejs",
+    "real-time",
+    "system-monitoring",
+    "website-monitoring",
+    "docker",
+    "express",
+    "react",
+    "websocket",
+    "sqlite"
   ],
   "author": "Said Mrini",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smrini/NodePuls.git"
+  },
+  "homepage": "https://github.com/smrini/NodePuls",
+  "bugs": {
+    "url": "https://github.com/smrini/NodePuls/issues"
+  },
   "dependencies": {
     "axios": "^1.5.0",
     "compression": "^1.7.4",

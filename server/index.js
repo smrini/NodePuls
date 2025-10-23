@@ -14,6 +14,7 @@ const cron = require("node-cron");
 const systemMonitor = require("./services/systemMonitor");
 const uptimeMonitor = require("./services/uptimeMonitor");
 const config = require("../config");
+const packageJson = require("../package.json");
 
 const app = express();
 const server = http.createServer(app);
@@ -79,7 +80,12 @@ app.get("/api/config", (req, res) => {
 });
 
 app.get("/api/health", (req, res) => {
-	res.json({ status: "ok", timestamp: new Date().toISOString() });
+	res.json({ 
+		status: "ok", 
+		timestamp: new Date().toISOString(),
+		version: packageJson.version,
+		name: packageJson.name
+	});
 });
 
 app.get("/api/system", async (req, res) => {

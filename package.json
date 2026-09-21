@@ -1,66 +1,22 @@
 {
   "name": "nodepuls",
-  "version": "1.7.3",
-  "description": "A beautiful, lightweight real-time homelab monitoring dashboard",
-  "main": "server/index.js",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "npm run build && npm run server",
-    "dev:watch": "concurrently \"npm run build:watch\" \"npm run server\"",
-    "server": "nodemon server/index.js",
-    "build": "npm run build:client && npm run build:copy",
-    "build:client": "cd client && npm run build",
-    "build:copy": "node scripts/copy-build.js",
-    "build:watch": "nodemon --watch client/src --ext js,jsx,ts,tsx,css,html --exec \"npm run build\"",
-    "start": "cross-env NODE_ENV=production node server/index.js",
-    "start:prod": "npm run build && npm start",
-    "install:all": "npm install && cd client && npm install",
-    "clean": "node scripts/clean.js",
-    "test": "cd client && npm test",
-    "test:ci": "cd client && npm test -- --watchAll=false --coverage",
-    "test:all": "cd client && npm test -- --watchAll"
-  },
-  "keywords": [
-    "nodepuls",
-    "homelab",
-    "dashboard",
-    "monitoring",
-    "uptime",
-    "server",
-    "nodejs",
-    "real-time",
-    "system-monitoring",
-    "website-monitoring",
-    "docker",
-    "express",
-    "react",
-    "websocket",
-    "sqlite"
-  ],
-  "author": "Said Mrini",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/smrini/NodePuls.git"
-  },
-  "homepage": "https://github.com/smrini/NodePuls",
-  "bugs": {
-    "url": "https://github.com/smrini/NodePuls/issues"
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "axios": "^1.5.0",
-    "compression": "^1.7.4",
-    "cors": "^2.8.5",
-    "cross-env": "^7.0.3",
-    "dotenv": "^17.0.1",
-    "express": "^4.18.2",
-    "helmet": "^7.0.0",
-    "node-cron": "^3.0.2",
-    "socket.io": "^4.7.2",
-    "sqlite3": "^5.1.7",
-    "systeminformation": "^5.21.8"
+    "vue": "^3.5.42"
   },
   "devDependencies": {
-    "concurrently": "^8.2.1",
-    "nodemon": "^3.0.1"
+    "@types/node": "^24.13.3",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/tsconfig": "^0.9.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vue-tsc": "^3.3.11"
   }
 }

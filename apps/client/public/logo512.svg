@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 510.17 510.17">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient-4);
+        opacity: .6;
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke-width: 0px;
+      }
+
+      .cls-1, .cls-3 {
+        isolation: isolate;
+      }
+
+      .cls-2 {
+        fill: #06d6a0;
+      }
+
+      .cls-4 {
+        fill: #1e293b;
+        stroke: url(#linear-gradient);
+        stroke-width: 14.17px;
+      }
+
+      .cls-3 {
+        fill: url(#linear-gradient-3);
+        opacity: .8;
+      }
+
+      .cls-5 {
+        fill: none;
+        stroke: url(#linear-gradient-2);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 21.26px;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="707.34" y1="171.69" x2="714.51" y2="164.51" gradientTransform="translate(-49509.91 12022.09) scale(70 -70)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1e40af"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="696.72" y1="170.76" x2="703.81" y2="170.76" gradientTransform="translate(-34758.2 7014.51) scale(50 -40)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06d6a0"/>
+      <stop offset=".5" stop-color="#00c9a7"/>
+      <stop offset="1" stop-color="#118ab2"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-3" x1="699.49" y1="170.93" x2="706.57" y2="163.84" gradientTransform="translate(-37708.54 1543.69) scale(54 -7)" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-4" x1="699.49" y1="163.1" x2="706.57" y2="156.02" gradientTransform="translate(-37708.54 1552.69) scale(54 -7)" xlink:href="#linear-gradient"/>
+  </defs>
+  <g id="Layer_2-2" data-name="Layer 2">
+    <g>
+      <rect class="cls-4" x="7.09" y="7.09" width="496" height="496" rx="90.12" ry="90.12"/>
+      <path class="cls-5" d="m77.94,219.66h70.86l35.43-106.29,35.43,212.57L255.09,42.51l35.43,248,35.43-70.86h106.29"/>
+      <rect class="cls-3" x="63.77" y="347.2" width="382.63" height="49.6" rx="14.17" ry="14.17"/>
+      <rect class="cls-1" x="63.77" y="410.97" width="382.63" height="49.6" rx="14.17" ry="14.17"/>
+      <circle class="cls-2" cx="396.8" cy="372" r="14.17"/>
+      <circle class="cls-2" cx="396.8" cy="435.77" r="14.17"/>
+    </g>
+  </g>
+</svg>

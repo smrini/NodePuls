@@ -1,5 +1,35 @@
-# Vue 3 + TypeScript + Vite
+# NodePuls v2
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A full rewrite of [NodePuls](https://github.com/smrini/NodePuls) - Diffrent
+technologies, and diffrent code...
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+See `NodePuls-Rewrite-Plan.md`, `NodePuls-Code-Guidelines.md`, and
+`NodePuls-Design-Guidelines.html` for the full plan/conventions/visual spec this
+scaffold follows.
+
+## Setup
+
+```bash
+cp .env.example .env
+npm install
+npm run dev
+```
+
+This starts two watchers together: `server` (tsx watch on port 3020) and
+`client` (Vite dev server, default port 5173, proxying `/api` and
+`/socket.io` to the server). Open the Vite URL it prints.
+
+## Scripts
+
+| Command                                   | Does                                                                                            |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `npm run dev`                             | Runs shared-types/server/client together, watching                                              |
+| `npm run build`                           | Builds shared-types, client, and server, then copies the client build into `apps/server/public` |
+| `npm start`                               | Runs the built server (serves the built client too)                                             |
+| `npm run typecheck`                       | Type-checks all three packages                                                                  |
+| `npm run lint` / `npm run lint:fix`       | ESLint across the repo                                                                          |
+| `npm run format` / `npm run format:check` | Prettier across the repo                                                                        |
+| `npm run clean`                           | Removes all build outputs                                                                       |
+
+Each package can also be run individually with npm's `--workspace` flag, e.g.
+`npm run dev --workspace=@nodepuls/server`.

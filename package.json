@@ -1,22 +1,38 @@
 {
   "name": "nodepuls",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0-alpha.0",
+  "description": "NodePuls — homelab monitoring dashboard (v2 rewrite: Vue 3 + Vite + TS client, Express + TS server)",
   "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "vue": "^3.5.42"
+    "dev": "concurrently -k -n server,client -c blue,green \"npm run dev --workspace=@nodepuls/server\" \"npm run dev --workspace=@nodepuls/client\"",
+    "build": "npm run build --workspace=@nodepuls/client && npm run build --workspace=@nodepuls/server && node scripts/copy-build.js",
+    "start": "node apps/server/dist/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspace=@nodepuls/client && npm run typecheck --workspace=@nodepuls/server",
+    "clean": "node scripts/clean.js"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
-    "@vitejs/plugin-vue": "^6.0.8",
-    "@vue/tsconfig": "^0.9.1",
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0",
-    "vue-tsc": "^3.3.11"
+    "@eslint/js": "^9.15.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^9.31.0",
+    "globals": "^17.12.0",
+    "jiti": "^2.7.0",
+    "prettier": "^3.4.1",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.16.0",
+    "vue-eslint-parser": "^9.4.3"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

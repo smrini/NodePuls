@@ -1,0 +1,1906 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>NodePuls — Component Design Reference</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg0: #0f172a;
+        --bg1: #1e293b;
+        --bg2: #334155;
+        --border1: #475569;
+        --t3: #64748b;
+        --t2: #94a3b8;
+        --t1: #cbd5e1;
+        --t-bright: #e2e8f0;
+        --t-max: #f8fafc;
+        --ac-light: #60a5fa;
+        --ac: #3b82f6;
+        --ac-strong: #2563eb;
+        --ok: #22c55e;
+        --chart-mem: #10b981;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        --mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #0b1220;
+        color: var(--t1);
+        font-family: var(--sans);
+        line-height: 1.5;
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 40px 24px 120px;
+      }
+
+      .cover {
+        padding: 40px 0 32px;
+        border-bottom: 1px solid var(--border1);
+        margin-bottom: 32px;
+      }
+      .cover-eyebrow {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        color: var(--t3);
+        letter-spacing: 0.04em;
+      }
+      .cover h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--t-max);
+        margin: 8px 0 12px;
+      }
+      .cover p {
+        color: var(--t2);
+        max-width: 700px;
+        margin: 0 0 8px;
+        font-size: 0.9rem;
+      }
+
+      .toc {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-bottom: 48px;
+      }
+      .toc a {
+        display: block;
+        color: var(--t2);
+        text-decoration: none;
+        font-size: 0.72rem;
+        padding: 8px 10px;
+        border: 1px solid var(--border1);
+        border-radius: 6px;
+        background: var(--bg1);
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .toc a:hover {
+        border-color: var(--ac);
+        color: var(--t-bright);
+      }
+      .toc-group-label {
+        grid-column: 1 / -1;
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        color: var(--t3);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-top: 10px;
+      }
+      .toc-group-label:first-child {
+        margin-top: 0;
+      }
+
+      .chapter {
+        margin-bottom: 56px;
+        scroll-margin-top: 24px;
+      }
+      .chapter-num {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        color: var(--ac-light);
+        margin-bottom: 4px;
+      }
+      .chapter-num span {
+        color: var(--t-max);
+        font-weight: 700;
+      }
+      .chapter-title-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 2px solid var(--ac);
+        padding-bottom: 12px;
+        margin-bottom: 8px;
+      }
+      .chapter-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--t-max);
+        margin: 0;
+      }
+      .chapter-target {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--t3);
+        white-space: nowrap;
+      }
+      .chapter-target b {
+        color: var(--ac-light);
+        font-weight: 600;
+      }
+      .chapter p.note {
+        color: var(--t2);
+        font-size: 0.85rem;
+        max-width: 760px;
+      }
+      .sec-label {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        color: var(--t3);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin: 20px 0 10px;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        color: var(--ac-light);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.8rem;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border1);
+      }
+      th {
+        color: var(--t3);
+        font-family: var(--mono);
+        font-weight: 500;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+      }
+      td {
+        color: var(--t1);
+      }
+
+      pre {
+        background: var(--bg1);
+        border: 1px solid var(--border1);
+        border-radius: 6px;
+        padding: 14px 18px;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--t1);
+        line-height: 1.6;
+      }
+      pre .c {
+        color: var(--t3);
+      }
+
+      /* isolated component stage */
+      .stage {
+        background: #0f172a;
+        border: 1px dashed var(--border1);
+        border-radius: 8px;
+        padding: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: flex-start;
+      }
+      .stage-label {
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        color: var(--t3);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+
+      /* ═════ real production styles, used inside .stage only ═════ */
+      .logo-mark svg {
+        height: 40px;
+        width: auto;
+      }
+
+      .connection-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        font-family: var(--sans);
+      }
+      .connection-status.disconnected {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-color: rgba(239, 68, 68, 0.2);
+      }
+      .pulse-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #3b82f6;
+        padding-bottom: 0.5rem;
+        width: 320px;
+        font-family: var(--sans);
+      }
+      .section-header h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
+
+      .stat-card {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid #475569;
+        border-radius: 8px;
+        padding: 0.9rem;
+        width: 240px;
+        font-family: var(--sans);
+      }
+      .stat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        color: #cbd5e1;
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+      .stat-header > div:first-child {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .icon-btn {
+        background: rgba(51, 65, 85, 0.6);
+        border: 1px solid #475569;
+        border-radius: 4px;
+        color: #cbd5e1;
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .stat-usage-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .stat-usage-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+      .stat-usage-info b {
+        font-weight: 500;
+      }
+      .percentage-large {
+        font-size: 1.5rem;
+        font-weight: 700;
+        min-width: 55px;
+        text-align: right;
+      }
+      .percentage-large.good {
+        color: #22c55e;
+      }
+      .percentage-large.warning {
+        color: #f59e0b;
+      }
+      .percentage-large.critical {
+        color: #ef4444;
+      }
+      .link-label {
+        color: #60a5fa;
+        font-size: 0.75rem;
+        font-weight: 500;
+      }
+
+      .progress-bar {
+        height: 4px;
+        background: #374151;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: 0.6rem;
+        width: 240px;
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 2px;
+      }
+      .progress-fill.good {
+        background: #22c55e;
+      }
+      .progress-fill.warning {
+        background: #f59e0b;
+      }
+      .progress-fill.critical {
+        background: #ef4444;
+      }
+
+      .website-card {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid #475569;
+        border-radius: 8px;
+        padding: 0.85rem;
+        width: 300px;
+        font-family: var(--sans);
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .website-main-info {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .website-name {
+        font-weight: 500;
+        color: #e2e8f0;
+        font-size: 0.9rem;
+        margin: 0;
+      }
+      .website-url {
+        color: #94a3b8;
+        font-size: 0.75rem;
+        margin: 0;
+      }
+      .card-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+      }
+      .status-icon.up {
+        color: #22c55e;
+      }
+      .status-icon.down {
+        color: #ef4444;
+      }
+      .status-icon.checking {
+        color: #f59e0b;
+        animation: pulse 2s infinite;
+      }
+      .status-icon.unknown {
+        color: #6b7280;
+      }
+
+      .card-details {
+        margin-top: 0.85rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid #374151;
+      }
+      .details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.85fr;
+        gap: 0.7rem;
+        margin-bottom: 0.85rem;
+      }
+      .detail-label {
+        color: #94a3b8;
+        font-size: 0.68rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .detail-value {
+        color: #e2e8f0;
+        font-size: 0.8rem;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .detail-value.mono {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: #94a3b8;
+        word-break: break-all;
+      }
+      .status-chip {
+        font-weight: 500;
+        font-size: 0.7rem;
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+      }
+      .status-chip.up {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+      }
+      .status-chip.down {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+      }
+      .status-chip.checking {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        border: none;
+        padding: 0.35rem 0.7rem;
+        border-radius: 4px;
+        font-size: 0.72rem;
+        font-weight: 500;
+        font-family: var(--sans);
+      }
+      .action-btn.primary {
+        background: #3b82f6;
+        color: white;
+      }
+      .action-btn.secondary {
+        background: #374151;
+        color: #d1d5db;
+      }
+      .action-btn.icon-only {
+        width: 30px;
+        padding: 0.35rem;
+        justify-content: center;
+      }
+      .action-btn.danger {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      .add-website-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        font-family: var(--sans);
+      }
+      .add-website-btn:hover,
+      .action-btn.primary:hover {
+        background: #2563eb;
+      }
+
+      .dropdown-menu {
+        position: relative;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid #475569;
+        border-radius: 6px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        min-width: 200px;
+        font-family: var(--sans);
+      }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 0.75rem;
+        background: none;
+        border: none;
+        color: #cbd5e1;
+        text-align: left;
+        border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+        font-size: 0.85rem;
+      }
+      .dropdown-item:last-child {
+        border-bottom: none;
+      }
+      .dropdown-item.active {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+        border-left: 3px solid #3b82f6;
+      }
+      .dropdown-item-main {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .dropdown-item-name {
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+      .dropdown-item-detail {
+        font-size: 0.72rem;
+        color: #94a3b8;
+      }
+      .dropdown-item-usage {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #22c55e;
+      }
+
+      .chart-mini h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #cbd5e1;
+        font-family: var(--sans);
+      }
+      .chart-legend {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 6px;
+        font-size: 0.72rem;
+        color: #9ca3af;
+        font-family: var(--sans);
+      }
+      .chart-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      /* icon glyphs (approximate lucide, stroke style) */
+      .ic {
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* guide chrome */
+      .swatch-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .swatch {
+        width: 130px;
+        border: 1px solid var(--border1);
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--bg1);
+      }
+      .swatch-color {
+        height: 52px;
+      }
+      .swatch-meta {
+        padding: 7px 9px;
+      }
+      .swatch-name {
+        font-size: 0.72rem;
+        color: var(--t-bright);
+        font-weight: 600;
+      }
+      .swatch-hex {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        color: var(--t3);
+      }
+      .swatch-use {
+        font-size: 0.68rem;
+        color: var(--t2);
+        margin-top: 3px;
+      }
+      .space-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 6px;
+      }
+      .space-label {
+        width: 120px;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--t2);
+        flex-shrink: 0;
+      }
+      .space-bar {
+        background: var(--ac);
+        border-radius: 2px;
+        height: 12px;
+      }
+      .radius-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .radius-box {
+        width: 80px;
+        height: 52px;
+        background: var(--bg2);
+        border: 1px solid var(--border1);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 5px;
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        color: var(--t2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="cover">
+        <div class="cover-eyebrow">NodePuls v2 — Component Design Reference (rev. 3)</div>
+        <h1>Component Design Reference</h1>
+        <p>
+          Each section below is one isolated UI piece — shown on its own, not assembled into a page
+          — with the exact CSS values it needs, taken directly from the running v1 app
+          (<code>Dashboard.css</code>, the *.tsx files, and <code>nodepuls.svg</code>). Build each
+          as its own Vue SFC per <code>NodePuls-Code-Guidelines.md</code>'s file structure; the
+          "maps to" line under each heading names the target file.
+        </p>
+      </div>
+
+      <div class="toc">
+        <div class="toc-group-label">Components</div>
+        <a href="#c01">01 — Logo</a>
+        <a href="#c02">02 — Connection Status</a>
+        <a href="#c03">03 — Panel Header</a>
+        <a href="#c04">04 — Stat Card</a>
+        <a href="#c05">05 — Progress Bar</a>
+        <a href="#c06">06 — Website Card (collapsed)</a>
+        <a href="#c07">07 — Website Card (expanded)</a>
+        <a href="#c08">08 — Buttons</a>
+        <a href="#c09">09 — Status Icon & Chip</a>
+        <a href="#c10">10 — Dropdown Menu</a>
+        <a href="#c11">11 — Chart</a>
+        <div class="toc-group-label">System reference</div>
+        <a href="#c12">12 — Color</a>
+        <a href="#c13">13 — Typography</a>
+        <a href="#c14">14 — Spacing & Radius</a>
+        <a href="#c15">15 — Motion</a>
+        <a href="#c16">16 — Tokens (CSS)</a>
+        <a href="#c17">17 — Responsive</a>
+      </div>
+
+      <!-- ═══ 01 — Logo ═══ -->
+      <div class="chapter" id="c01">
+        <div class="chapter-num"><span>01</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Logo</h2>
+          <span class="chapter-target">maps to <b>components/layout/NodeLogo.vue</b></span>
+        </div>
+        <div class="stage">
+          <div>
+            <div class="stage-label">default</div>
+            <svg viewBox="0 0 191 58" xmlns="http://www.w3.org/2000/svg" style="height: 44px">
+              <defs>
+                <linearGradient id="pg1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#3b82f6" />
+                  <stop offset="50%" stop-color="#06b6d4" />
+                  <stop offset="100%" stop-color="#10b981" />
+                </linearGradient>
+              </defs>
+              <text
+                x="0"
+                y="33"
+                font-family="Arial, sans-serif"
+                font-size="38"
+                font-weight="bold"
+                fill="#d4d2d2"
+              >
+                Node
+                <tspan fill="url(#pg1)">puls</tspan>
+              </text>
+              <text
+                x="2"
+                y="55"
+                font-family="Arial, sans-serif"
+                font-size="16"
+                fill="#6b7280"
+                opacity="0.8"
+              >
+                HOMELAB MONITORING
+              </text>
+            </svg>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Part</th>
+            <th>Detail</th>
+          </tr>
+          <tr>
+            <td><code>Node</code></td>
+            <td>Arial Bold 38px, fill <code>#d4d2d2</code> — static</td>
+          </tr>
+          <tr>
+            <td><code>puls</code></td>
+            <td>
+              animated <code>linearGradient</code> fill: <code>#3b82f6 → #06b6d4 → #10b981</code>,
+              sweeps 2s loop, soft glow filter, own 1.5s opacity pulse (1 → 0.6 → 1)
+            </td>
+          </tr>
+          <tr>
+            <td>Tagline</td>
+            <td>
+              "HOMELAB MONITORING", Arial 16px, <code>#6b7280</code> @ 0.8 opacity, own 2s opacity
+              pulse (0.8 → 1 → 0.8)
+            </td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          Port as an inline SVG component (with its animations), not a rasterized image — the motion
+          is part of the brand.
+        </p>
+      </div>
+
+      <!-- ═══ 02 — Connection Status ═══ -->
+      <div class="chapter" id="c02">
+        <div class="chapter-num"><span>02</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Connection Status</h2>
+          <span class="chapter-target">maps to <b>components/layout/ConnectionStatus.vue</b></span>
+        </div>
+        <div class="stage">
+          <div>
+            <div class="stage-label">connected</div>
+            <div class="connection-status"><span class="pulse-dot"></span>Connected</div>
+          </div>
+          <div>
+            <div class="stage-label">disconnected</div>
+            <div class="connection-status disconnected">
+              <span class="pulse-dot" style="animation: none"></span>Disconnected
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>State</th>
+            <th>Background</th>
+            <th>Text</th>
+            <th>Border</th>
+          </tr>
+          <tr>
+            <td>Connected</td>
+            <td>rgba(34,197,94,0.1)</td>
+            <td>#22c55e</td>
+            <td>1px rgba(34,197,94,0.2)</td>
+          </tr>
+          <tr>
+            <td>Disconnected</td>
+            <td>rgba(239,68,68,0.1)</td>
+            <td>#ef4444</td>
+            <td>1px rgba(239,68,68,0.2)</td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          The dot pulses (2s opacity loop) only while connected — it's a heartbeat cue, not
+          decoration.
+        </p>
+      </div>
+
+      <!-- ═══ 03 — Panel Header ═══ -->
+      <div class="chapter" id="c03">
+        <div class="chapter-num"><span>03</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Panel Header</h2>
+          <span class="chapter-target"
+            >shared pattern, part of <b>components/base/BaseCard.vue</b> / panel wrappers</span
+          >
+        </div>
+        <div class="stage">
+          <div>
+            <div class="stage-label">plain</div>
+            <div class="section-header"><h2>System Overview</h2></div>
+          </div>
+        </div>
+        <div class="stage" style="margin-top: 12px">
+          <div>
+            <div class="stage-label">with header action</div>
+            <div class="section-header">
+              <h2>Website Monitoring</h2>
+              <div class="icon-btn">
+                <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
+                  <circle cx="12" cy="5" r="1" />
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="12" cy="19" r="1" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Property</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td>Bottom rule</td>
+            <td>
+              <strong>solid</strong> 2px <code>#3b82f6</code> border-bottom on the whole flex row —
+              not a text underline
+            </td>
+          </tr>
+          <tr>
+            <td>Title</td>
+            <td>1.25rem / 600 / <code>#e2e8f0</code></td>
+          </tr>
+          <tr>
+            <td>Optional right-side action</td>
+            <td>a 26–28px square <code>.icon-btn</code> (kebab menu on Website Monitoring only)</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══ 04 — Stat Card ═══ -->
+      <div class="chapter" id="c04">
+        <div class="chapter-num"><span>04</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Stat Card</h2>
+          <span class="chapter-target"
+            >maps to <b>components/system/StatCard.vue</b> (used 4×: CPU, Disk, Memory,
+            Network)</span
+          >
+        </div>
+        <p class="note">
+          Icons are lucide: <code>Cpu</code>, <code>HardDrive</code>, <code>MemoryStick</code>,
+          <code>Network</code>, <code>ChevronDown</code>, size 20 — same names in
+          <code>lucide-vue-next</code>.
+        </p>
+        <div class="stage">
+          <div>
+            <div class="stage-label">CPU — no device select</div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <svg class="ic" width="18" height="18" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                    <rect x="9" y="9" width="6" height="6" />
+                    <line x1="9" y1="1" x2="9" y2="4" />
+                    <line x1="15" y1="1" x2="15" y2="4" />
+                    <line x1="9" y1="20" x2="9" y2="23" />
+                    <line x1="15" y1="20" x2="15" y2="23" />
+                    <line x1="1" y1="9" x2="4" y2="9" />
+                    <line x1="20" y1="9" x2="23" y2="9" />
+                    <line x1="1" y1="15" x2="4" y2="15" />
+                    <line x1="20" y1="15" x2="23" y2="15" />
+                  </svg>
+                  CPU
+                </div>
+              </div>
+              <div class="stat-usage-row">
+                <div class="stat-usage-info">
+                  <div>Cores: 4</div>
+                  <div>Speed: 2.7 GHz</div>
+                  <div>Temp: <b style="color: #f59e0b">50.0°C</b></div>
+                </div>
+                <div class="percentage-large good">7.0%</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill good" style="width: 7%"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="stage-label">Disk — with device select</div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <svg class="ic" width="18" height="18" viewBox="0 0 24 24">
+                    <rect x="2" y="6" width="20" height="12" rx="2" />
+                    <line x1="2" y1="13" x2="22" y2="13" />
+                    <circle cx="6" cy="17" r="0.6" fill="currentColor" />
+                    <circle cx="10" cy="17" r="0.6" fill="currentColor" />
+                  </svg>
+                  Disk
+                </div>
+                <div class="icon-btn">
+                  <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-usage-row">
+                <div class="stat-usage-info">
+                  <div>Used: 5.74 GB</div>
+                  <div>Total: 48.91 GB</div>
+                  <div class="link-label">System Root</div>
+                </div>
+                <div class="percentage-large good">11.7%</div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill good" style="width: 11.7%"></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="stage-label">Network — no percentage/bar</div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <svg class="ic" width="18" height="18" viewBox="0 0 24 24">
+                    <circle cx="5" cy="5" r="2" />
+                    <circle cx="19" cy="5" r="2" />
+                    <circle cx="12" cy="19" r="2" />
+                    <line x1="6.5" y1="6.5" x2="11" y2="17.3" />
+                    <line x1="17.5" y1="6.5" x2="13" y2="17.3" />
+                  </svg>
+                  Network
+                </div>
+                <div class="icon-btn">
+                  <svg class="ic" width="14" height="14" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+              </div>
+              <div class="stat-usage-row">
+                <div class="stat-usage-info">
+                  <div>↓ 583.96 B/s</div>
+                  <div>↑ 785.2 B/s</div>
+                  <div class="link-label">WiFi</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Region</th>
+            <th>Detail</th>
+          </tr>
+          <tr>
+            <td>Shell</td>
+            <td>
+              rgba(15,23,42,0.8) fill, border #475569, radius 8px, padding 1rem; hover:
+              <code>translateY(-2px)</code>, border → #3b82f6
+            </td>
+          </tr>
+          <tr>
+            <td>Device-select chevron</td>
+            <td>Disk and Network only — CPU/Memory never show it (single fixed metric)</td>
+          </tr>
+          <tr>
+            <td>Big percentage</td>
+            <td>
+              1.75rem/700, colored by threshold (good/warning/critical) — same logic as the progress
+              bar. Network has neither, since it's a rate, not a fill level
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══ 05 — Progress Bar ═══ -->
+      <div class="chapter" id="c05">
+        <div class="chapter-num"><span>05</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Progress Bar</h2>
+          <span class="chapter-target"
+            >maps to <b>components/system/ProgressBar.vue</b>, used inside StatCard</span
+          >
+        </div>
+        <div class="stage" style="flex-direction: column; gap: 14px">
+          <div>
+            <div class="stage-label">good</div>
+            <div class="progress-bar">
+              <div class="progress-fill good" style="width: 22%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="stage-label">warning</div>
+            <div class="progress-bar">
+              <div class="progress-fill warning" style="width: 62%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="stage-label">critical</div>
+            <div class="progress-bar">
+              <div class="progress-fill critical" style="width: 91%"></div>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Prop</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td>Track</td>
+            <td>height 4px, <code>#374151</code>, radius 2px</td>
+          </tr>
+          <tr>
+            <td>Fill</td>
+            <td>radius 2px, width = percentage, transition <code>width 0.3s ease</code></td>
+          </tr>
+          <tr>
+            <td>good / warning / critical</td>
+            <td><code>#22c55e</code> / <code>#f59e0b</code> / <code>#ef4444</code></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══ 06 — Website Card collapsed ═══ -->
+      <div class="chapter" id="c06">
+        <div class="chapter-num"><span>06</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Website Card — Collapsed</h2>
+          <span class="chapter-target"
+            >maps to <b>components/websites/WebsiteCard.vue</b> (default state)</span
+          >
+        </div>
+        <div class="stage">
+          <div class="website-card">
+            <div class="card-header">
+              <div class="website-main-info">
+                <svg class="ic" width="14" height="14" viewBox="0 0 24 24" style="color: #6b7280">
+                  <circle cx="9" cy="6" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="6" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="9" cy="18" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" />
+                </svg>
+                <div>
+                  <p class="website-name">Google</p>
+                  <p class="website-url">www.google.com</p>
+                </div>
+              </div>
+              <div class="card-actions">
+                <svg class="ic status-icon up" width="10" height="10" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" />
+                </svg>
+                <svg class="ic" width="16" height="16" viewBox="0 0 24 24">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Part</th>
+            <th>Detail</th>
+          </tr>
+          <tr>
+            <td>Drag handle</td>
+            <td>
+              lucide <code>GripVertical</code>, <code>#6b7280</code>, left-most — this is the drag
+              affordance for reordering (v2: <code>vuedraggable</code>)
+            </td>
+          </tr>
+          <tr>
+            <td>Name / URL</td>
+            <td>0.95rem/500 <code>#e2e8f0</code> · 0.8rem/400 <code>#94a3b8</code></td>
+          </tr>
+          <tr>
+            <td>Status dot</td>
+            <td>lucide <code>Circle</code> filled, size 12, colored by status (see Ch. 09)</td>
+          </tr>
+          <tr>
+            <td>Chevron</td>
+            <td>toggles expand/collapse — <code>ChevronDown</code> ↔ <code>ChevronUp</code></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══ 07 — Website Card expanded ═══ -->
+      <div class="chapter" id="c07">
+        <div class="chapter-num"><span>07</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Website Card — Expanded</h2>
+          <span class="chapter-target"
+            >maps to <b>components/websites/WebsiteCard.vue</b> (expanded state)</span
+          >
+        </div>
+        <div class="stage">
+          <div class="website-card" style="width: 340px">
+            <div class="card-header">
+              <div class="website-main-info">
+                <svg class="ic" width="14" height="14" viewBox="0 0 24 24" style="color: #6b7280">
+                  <circle cx="9" cy="6" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="6" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="9" cy="18" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15" cy="18" r="1" fill="currentColor" stroke="none" />
+                </svg>
+                <div>
+                  <p class="website-name">NextCloud</p>
+                  <p class="website-url">cloud.home.local</p>
+                </div>
+              </div>
+              <div class="card-actions">
+                <svg class="ic status-icon up" width="10" height="10" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" />
+                </svg>
+                <svg class="ic" width="16" height="16" viewBox="0 0 24 24">
+                  <polyline points="18 15 12 9 6 15" />
+                </svg>
+              </div>
+            </div>
+            <div class="card-details">
+              <div class="details-grid">
+                <div>
+                  <div class="detail-label">Status</div>
+                  <div class="detail-value"><span class="status-chip up">UP</span></div>
+                </div>
+                <div>
+                  <div class="detail-label">Response Time</div>
+                  <div class="detail-value">5ms</div>
+                </div>
+                <div>
+                  <div class="detail-label">Up Since</div>
+                  <div class="detail-value">
+                    <svg class="ic" width="11" height="11" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="9" />
+                      <polyline points="12 7 12 12 15 14" />
+                    </svg>
+                    8 days
+                  </div>
+                </div>
+                <div>
+                  <div class="detail-label">Url</div>
+                  <div class="detail-value mono">http://cloud.home.local</div>
+                </div>
+              </div>
+              <div class="action-buttons">
+                <button class="action-btn primary">
+                  <svg class="ic" width="12" height="12" viewBox="0 0 24 24">
+                    <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                  Visit Site
+                </button>
+                <button class="action-btn secondary">
+                  <svg class="ic" width="12" height="12" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10" />
+                    <line x1="12" y1="20" x2="12" y2="4" />
+                    <line x1="6" y1="20" x2="6" y2="14" />
+                  </svg>
+                  Analytics
+                </button>
+                <button class="action-btn secondary icon-only">
+                  <svg class="ic" width="13" height="13" viewBox="0 0 24 24">
+                    <path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5z" />
+                  </svg>
+                </button>
+                <button class="action-btn danger icon-only">
+                  <svg class="ic" width="13" height="13" viewBox="0 0 24 24">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Region</th>
+            <th>Detail</th>
+          </tr>
+          <tr>
+            <td>Divider</td>
+            <td>1px <code>#374151</code> border-top, 0.85rem padding above/below</td>
+          </tr>
+          <tr>
+            <td>Details grid</td>
+            <td>
+              <code>grid-template-columns: 1fr 1.85fr</code> — labels uppercase 0.68–0.75rem
+              <code>#94a3b8</code>, values 0.8rem <code>#e2e8f0</code>
+            </td>
+          </tr>
+          <tr>
+            <td>URL value</td>
+            <td>
+              the one spot using <code>var(--mono)</code> — <code>#94a3b8</code>, breaks on any
+              character
+            </td>
+          </tr>
+          <tr>
+            <td>Action row</td>
+            <td>see Ch. 08 for each button variant</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══ 08 — Buttons ═══ -->
+      <div class="chapter" id="c08">
+        <div class="chapter-num"><span>08</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Buttons</h2>
+          <span class="chapter-target">maps to <b>components/base/BaseButton.vue</b></span>
+        </div>
+        <div class="stage">
+          <div>
+            <div class="stage-label">primary</div>
+            <button class="action-btn primary" style="padding: 0.5rem 1rem; font-size: 0.8rem">
+              + Add Website
+            </button>
+          </div>
+          <div>
+            <div class="stage-label">secondary</div>
+            <button class="action-btn secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem">
+              Analytics
+            </button>
+          </div>
+          <div>
+            <div class="stage-label">danger (icon-only)</div>
+            <button class="action-btn danger icon-only" style="width: 36px; height: 36px">✕</button>
+          </div>
+          <div>
+            <div class="stage-label">icon button (utility)</div>
+            <div class="icon-btn" style="width: 36px; height: 36px">⌄</div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Variant</th>
+            <th>Background</th>
+            <th>Text</th>
+            <th>Border</th>
+            <th>Hover</th>
+          </tr>
+          <tr>
+            <td>primary</td>
+            <td>#3b82f6</td>
+            <td>white</td>
+            <td>none</td>
+            <td>#2563eb</td>
+          </tr>
+          <tr>
+            <td>secondary</td>
+            <td>#374151</td>
+            <td>#d1d5db</td>
+            <td>none</td>
+            <td>#4b5563</td>
+          </tr>
+          <tr>
+            <td>danger</td>
+            <td>rgba(239,68,68,.1)</td>
+            <td>#ef4444</td>
+            <td>1px rgba(239,68,68,.2)</td>
+            <td>rgba(239,68,68,.2)</td>
+          </tr>
+          <tr>
+            <td>icon button (utility)</td>
+            <td>rgba(51,65,85,.6)</td>
+            <td>#cbd5e1</td>
+            <td>1px #475569</td>
+            <td>bg rgba(59,130,246,.1), border/text #3b82f6</td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          All button radii are 4–6px, all transitions are 0.2s. There is no "large" size — every
+          button in the app is the same compact scale.
+        </p>
+      </div>
+
+      <!-- ═══ 09 — Status Icon & Chip ═══ -->
+      <div class="chapter" id="c09">
+        <div class="chapter-num"><span>09</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Status Icon & Chip</h2>
+          <span class="chapter-target"
+            >maps to <b>components/base/BaseStatusPill.vue</b> (variant: 'dot' | 'chip')</span
+          >
+        </div>
+        <div class="stage">
+          <div>
+            <div class="stage-label">icon — up</div>
+            <svg class="ic status-icon up" width="16" height="16" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <div>
+            <div class="stage-label">icon — down</div>
+            <svg class="ic status-icon down" width="16" height="16" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" />
+            </svg>
+          </div>
+          <div>
+            <div class="stage-label">icon — checking (pulses)</div>
+            <svg class="ic status-icon checking" width="16" height="16" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </div>
+          <div>
+            <div class="stage-label">icon — unknown</div>
+            <svg class="ic status-icon unknown" width="16" height="16" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </div>
+        </div>
+        <div class="stage" style="margin-top: 12px">
+          <div>
+            <div class="stage-label">chip — up</div>
+            <span class="status-chip up">UP</span>
+          </div>
+          <div>
+            <div class="stage-label">chip — down</div>
+            <span class="status-chip down">DOWN</span>
+          </div>
+          <div>
+            <div class="stage-label">chip — checking</div>
+            <span class="status-chip checking">CHECKING</span>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>State</th>
+            <th>Color</th>
+            <th>Icon fill</th>
+            <th>Notes</th>
+          </tr>
+          <tr>
+            <td>up</td>
+            <td>#22c55e</td>
+            <td>filled circle</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>down</td>
+            <td>#ef4444</td>
+            <td>filled circle</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>checking</td>
+            <td>#f59e0b</td>
+            <td>outline circle</td>
+            <td>2s pulse animation</td>
+          </tr>
+          <tr>
+            <td>unknown</td>
+            <td>#6b7280</td>
+            <td>outline circle</td>
+            <td>fallback only</td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          A bare 12px dot next to the website name (card header) and a text chip with tinted
+          background inside the expanded details grid share the same status→color mapping — one
+          <code>BaseStatusPill</code> with a <code>variant</code> prop keeps that mapping in one
+          place instead of two components drifting apart over time.
+        </p>
+      </div>
+
+      <!-- ═══ 10 — Dropdown Menu ═══ -->
+      <div class="chapter" id="c10">
+        <div class="chapter-num"><span>10</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Dropdown Menu</h2>
+          <span class="chapter-target"
+            >maps to <b>components/system/DeviceSelect.vue</b> (Disk / Network device picker)</span
+          >
+        </div>
+        <div class="stage">
+          <div class="dropdown-menu" style="width: 220px">
+            <div class="dropdown-item active">
+              <div class="dropdown-item-main">
+                <span class="dropdown-item-name">System Root</span
+                ><span class="dropdown-item-detail">/</span>
+              </div>
+              <span class="dropdown-item-usage">11.7%</span>
+            </div>
+            <div class="dropdown-item">
+              <div class="dropdown-item-main">
+                <span class="dropdown-item-name">Data</span
+                ><span class="dropdown-item-detail">/mnt/data</span>
+              </div>
+              <span class="dropdown-item-usage">63.2%</span>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Part</th>
+            <th>Detail</th>
+          </tr>
+          <tr>
+            <td>Panel</td>
+            <td>
+              rgba(15,23,42,0.95), border #475569, radius 6px, shadow
+              <code>0 10px 25px rgba(0,0,0,.5)</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Item</td>
+            <td>0.75rem padding, divider 1px rgba(71,85,105,.3) between items, none on last</td>
+          </tr>
+          <tr>
+            <td>Active item</td>
+            <td>bg rgba(59,130,246,.2), text #60a5fa, 3px solid #3b82f6 left border</td>
+          </tr>
+          <tr>
+            <td>Open animation</td>
+            <td><code>dropdownSlide</code> — fade + translateY(-10px→0), 0.2s ease</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ═══ 11 — Chart ═══ -->
+      <div class="chapter" id="c11">
+        <div class="chapter-num"><span>11</span> — Component</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Chart</h2>
+          <span class="chapter-target"
+            >maps to <b>components/system/ResourceChart.vue</b>, used 2× (CPU/Memory,
+            Download/Upload)</span
+          >
+        </div>
+        <div class="stage" style="flex-direction: column">
+          <div class="chart-mini" style="width: 100%">
+            <h3>CPU &amp; Memory Usage</h3>
+            <svg viewBox="0 0 500 90" style="width: 100%; height: 90px">
+              <line x1="0" y1="10" x2="500" y2="10" stroke="#374151" stroke-dasharray="3 3" />
+              <line x1="0" y1="45" x2="500" y2="45" stroke="#374151" stroke-dasharray="3 3" />
+              <line x1="0" y1="80" x2="500" y2="80" stroke="#374151" stroke-dasharray="3 3" />
+              <polyline
+                points="0,72 70,70 140,73 210,71 280,72 350,69 420,70 500,71"
+                fill="none"
+                stroke="#3b82f6"
+                stroke-width="2"
+              />
+              <polyline
+                points="0,60 70,60 140,60 210,60 280,60 350,60 420,60 500,60"
+                fill="none"
+                stroke="#10b981"
+                stroke-width="2"
+              />
+            </svg>
+            <div class="chart-legend">
+              <span><span class="dot" style="background: #3b82f6"></span>CPU</span
+              ><span><span class="dot" style="background: #10b981"></span>Memory</span>
+            </div>
+          </div>
+        </div>
+        <table>
+          <tr>
+            <th>Element</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td>Grid lines</td>
+            <td>#374151, dashed 3 3</td>
+          </tr>
+          <tr>
+            <td>Axis text</td>
+            <td>#9ca3af, 12px</td>
+          </tr>
+          <tr>
+            <td>Tooltip</td>
+            <td>bg #1f2937, border #374151, text #f9fafb</td>
+          </tr>
+          <tr>
+            <td>CPU line</td>
+            <td>#3b82f6</td>
+          </tr>
+          <tr>
+            <td>Memory line</td>
+            <td>#10b981 — a chart-only green, distinct from the <code>--ok</code> status green</td>
+          </tr>
+          <tr>
+            <td>Download line</td>
+            <td>#f59e0b</td>
+          </tr>
+          <tr>
+            <td>Upload line</td>
+            <td>#ef4444</td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          v2 keeps Recharts, same as v1 — every value above transfers directly
+          into the chart config unchanged.
+        </p>
+      </div>
+
+      <!-- ═══ 12 — Color ═══ -->
+      <div class="chapter" id="c12">
+        <div class="chapter-num"><span>12</span> — Reference</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Color</h2>
+          <span class="chapter-target">feeds <b>assets/base.css</b></span>
+        </div>
+        <div class="sec-label">Surfaces</div>
+        <div class="swatch-row">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #0f172a"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">bg0</div>
+              <div class="swatch-hex">#0f172a</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #1e293b"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">bg1</div>
+              <div class="swatch-hex">#1e293b</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #334155"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">bg2</div>
+              <div class="swatch-hex">#334155</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #475569"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">border1</div>
+              <div class="swatch-hex">#475569</div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-label">Text</div>
+        <div class="swatch-row">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #64748b"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">t3</div>
+              <div class="swatch-hex">#64748b</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #94a3b8"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">t2</div>
+              <div class="swatch-hex">#94a3b8</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #cbd5e1"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">t1</div>
+              <div class="swatch-hex">#cbd5e1</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #e2e8f0"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">t-bright</div>
+              <div class="swatch-hex">#e2e8f0</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #f8fafc"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">t-max</div>
+              <div class="swatch-hex">#f8fafc</div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-label">Accent</div>
+        <div class="swatch-row">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #60a5fa"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">ac-light</div>
+              <div class="swatch-hex">#60a5fa</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #3b82f6"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">ac</div>
+              <div class="swatch-hex">#3b82f6</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #2563eb"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">ac-strong</div>
+              <div class="swatch-hex">#2563eb</div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-label">Status (green vs. chart green are different tokens)</div>
+        <div class="swatch-row">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #22c55e"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">ok</div>
+              <div class="swatch-hex">#22c55e</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #10b981"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">chart-mem</div>
+              <div class="swatch-hex">#10b981</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #f59e0b"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">warn</div>
+              <div class="swatch-hex">#f59e0b</div>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #ef4444"></div>
+            <div class="swatch-meta">
+              <div class="swatch-name">danger</div>
+              <div class="swatch-hex">#ef4444</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ 13 — Typography ═══ -->
+      <div class="chapter" id="c13">
+        <div class="chapter-num"><span>13</span> — Reference</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Typography</h2>
+          <span class="chapter-target">feeds <b>assets/base.css</b></span>
+        </div>
+        <table>
+          <tr>
+            <th>Element</th>
+            <th>Size / weight</th>
+            <th>Color</th>
+          </tr>
+          <tr>
+            <td>Panel title</td>
+            <td>1.25rem / 600</td>
+            <td>#e2e8f0</td>
+          </tr>
+          <tr>
+            <td>Stat card label row</td>
+            <td>0.875rem / 500</td>
+            <td>#cbd5e1</td>
+          </tr>
+          <tr>
+            <td>Big percentage</td>
+            <td>1.75rem / 700</td>
+            <td>status-dependent</td>
+          </tr>
+          <tr>
+            <td>Card sub-detail</td>
+            <td>0.875rem / 400</td>
+            <td>#94a3b8</td>
+          </tr>
+          <tr>
+            <td>Website name</td>
+            <td>0.95rem / 500</td>
+            <td>#e2e8f0</td>
+          </tr>
+          <tr>
+            <td>Website url</td>
+            <td>0.8rem / 400</td>
+            <td>#94a3b8</td>
+          </tr>
+          <tr>
+            <td>Detail label</td>
+            <td>0.75rem / 500, uppercase, 0.025em</td>
+            <td>#94a3b8</td>
+          </tr>
+          <tr>
+            <td>URL value (mono)</td>
+            <td>0.8rem, <code>var(--mono)</code></td>
+            <td>#94a3b8</td>
+          </tr>
+          <tr>
+            <td>Button label</td>
+            <td>0.75rem / 500</td>
+            <td>per variant</td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          Monospace is reserved for the one place raw data appears verbatim — the URL row.
+          Everything else, including numbers, is system sans.
+        </p>
+      </div>
+
+      <!-- ═══ 14 — Spacing & Radius ═══ -->
+      <div class="chapter" id="c14">
+        <div class="chapter-num"><span>14</span> — Reference</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Spacing & Radius</h2>
+          <span class="chapter-target">feeds <b>assets/base.css</b></span>
+        </div>
+        <div class="sec-label">Spacing in use (rem, 4px base)</div>
+        <div class="space-row">
+          <div class="space-label">0.25rem · 4px</div>
+          <div class="space-bar" style="width: 4px"></div>
+        </div>
+        <div class="space-row">
+          <div class="space-label">0.5rem · 8px</div>
+          <div class="space-bar" style="width: 8px"></div>
+        </div>
+        <div class="space-row">
+          <div class="space-label">0.75rem · 12px</div>
+          <div class="space-bar" style="width: 12px"></div>
+        </div>
+        <div class="space-row">
+          <div class="space-label">1rem · 16px</div>
+          <div class="space-bar" style="width: 16px"></div>
+        </div>
+        <div class="space-row">
+          <div class="space-label">1.5rem · 24px</div>
+          <div class="space-bar" style="width: 24px"></div>
+        </div>
+        <div class="space-row">
+          <div class="space-label">2rem · 32px</div>
+          <div class="space-bar" style="width: 32px"></div>
+        </div>
+        <div class="sec-label">Radius, by component</div>
+        <div class="radius-row">
+          <div class="radius-box" style="border-radius: 4px">4px<br />icon btns</div>
+          <div class="radius-box" style="border-radius: 6px">6px<br />primary btn</div>
+          <div class="radius-box" style="border-radius: 8px">8px<br />cards</div>
+          <div class="radius-box" style="border-radius: 12px">12px<br />panels</div>
+        </div>
+      </div>
+
+      <!-- ═══ 15 — Motion ═══ -->
+      <div class="chapter" id="c15">
+        <div class="chapter-num"><span>15</span> — Reference</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Motion</h2>
+          <span class="chapter-target">feeds <b>assets/main.css</b></span>
+        </div>
+        <table>
+          <tr>
+            <th>Keyframe</th>
+            <th>Duration</th>
+            <th>Where</th>
+          </tr>
+          <tr>
+            <td>pulse (1 → 0.5 → 1)</td>
+            <td>2s infinite</td>
+            <td>Connection dot, checking status icon</td>
+          </tr>
+          <tr>
+            <td>dropdownSlide</td>
+            <td>0.2s ease</td>
+            <td>Device dropdown opening</td>
+          </tr>
+          <tr>
+            <td>slideDown</td>
+            <td>0.2s ease-out</td>
+            <td>Website card expanding</td>
+          </tr>
+          <tr>
+            <td>formSlideIn</td>
+            <td>0.4s cubic-bezier(0.16,1,0.3,1)</td>
+            <td>Add-website form appearing</td>
+          </tr>
+          <tr>
+            <td>Logo gradient sweep</td>
+            <td>2s infinite</td>
+            <td>Logo "puls" text</td>
+          </tr>
+          <tr>
+            <td>Logo/tagline opacity pulses</td>
+            <td>1.5s / 2s infinite</td>
+            <td>Logo text</td>
+          </tr>
+        </table>
+        <p class="note" style="margin-top: 10px">
+          No page-load entrance animation anywhere — motion only ever responds to something
+          happening. Keep that rule in v2.
+        </p>
+      </div>
+
+      <!-- ═══ 16 — Tokens ═══ -->
+      <div class="chapter" id="c16">
+        <div class="chapter-num"><span>16</span> — Reference</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Tokens (CSS)</h2>
+          <span class="chapter-target">canonical <b>assets/base.css</b></span>
+        </div>
+        <pre>:root {
+  <span class="c">/* surfaces */</span>
+  --bg0: #0f172a; --bg1: #1e293b; --bg2: #334155; --border1: #475569;
+
+  <span class="c">/* text */</span>
+  --t3: #64748b; --t2: #94a3b8; --t1: #cbd5e1; --t-bright: #e2e8f0; --t-max: #f8fafc;
+
+  <span class="c">/* accent */</span>
+  --ac-light: #60a5fa; --ac: #3b82f6; --ac-strong: #2563eb;
+
+  <span class="c">/* status */</span>
+  --ok: #22c55e; --warn: #f59e0b; --danger: #ef4444;
+
+  <span class="c">/* chart-only — do not alias to --ok */</span>
+  --chart-cpu: #3b82f6; --chart-mem: #10b981;
+  --chart-download: #f59e0b; --chart-upload: #ef4444;
+  --chart-grid: #374151; --chart-axis: #9ca3af; --chart-tooltip-bg: #1f2937;
+
+  <span class="c">/* radius */</span>
+  --r-icon: 4px; --r-btn: 6px; --r-card: 8px; --r-panel: 12px;
+
+  <span class="c">/* fonts */</span>
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  --mono: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}</pre>
+      </div>
+
+      <!-- ═══ 17 — Responsive ═══ -->
+      <div class="chapter" id="c17">
+        <div class="chapter-num"><span>17</span> — Reference</div>
+        <div class="chapter-title-row">
+          <h2 class="chapter-title">Responsive</h2>
+          <span class="chapter-target">breakpoints</span>
+        </div>
+        <table>
+          <tr>
+            <th>Max-width</th>
+            <th>Behavior</th>
+          </tr>
+          <tr>
+            <td>1200px</td>
+            <td>Grid columns start tightening</td>
+          </tr>
+          <tr>
+            <td>1024px</td>
+            <td>Secondary panels begin stacking</td>
+          </tr>
+          <tr>
+            <td>768px</td>
+            <td>Main breakpoint — page grid collapses to a single column</td>
+          </tr>
+          <tr>
+            <td>480px</td>
+            <td>Padding/spacing reductions for small phones</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

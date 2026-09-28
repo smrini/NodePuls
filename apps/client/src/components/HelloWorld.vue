@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import heroImg from '../assets/hero.png'
 import viteLogo from '../assets/vite.svg'
 import vueLogo from '../assets/vue.svg'
+import ConnectionStatus from './layout/ConnectionStatus.vue'
 
 const count = ref(0)
 </script>

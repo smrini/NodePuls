@@ -1,0 +1,43 @@
+:root {
+  /* surfaces */
+  --bg0: #0f172a;
+  --bg1: #1e293b;
+  --bg2: #334155;
+  --border1: #475569;
+
+  /* text */
+  --t3: #64748b;
+  --t2: #94a3b8;
+  --t1: #cbd5e1;
+  --t-bright: #e2e8f0;
+  --t-max: #f8fafc;
+
+  /* accent */
+  --ac-light: #60a5fa;
+  --ac: #3b82f6;
+  --ac-strong: #2563eb;
+
+  /* status */
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+
+  /* chart-only — do not alias to --ok */
+  --chart-cpu: #3b82f6;
+  --chart-mem: #10b981;
+  --chart-download: #f59e0b;
+  --chart-upload: #ef4444;
+  --chart-grid: #374151;
+  --chart-axis: #9ca3af;
+  --chart-tooltip-bg: #1f2937;
+
+  /* radius */
+  --r-icon: 4px;
+  --r-btn: 6px;
+  --r-card: 8px;
+  --r-panel: 12px;
+
+  /* fonts */
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  --mono: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}

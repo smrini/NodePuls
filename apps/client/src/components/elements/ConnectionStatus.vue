@@ -35,13 +35,13 @@ const props = withDefaults(
 
 .connection-status.connected {
 	background: rgba(34, 197, 94, 0.1);
-	color: #22c55e;
+	color: var(--ok);
 	border: 1px solid rgba(34, 197, 94, 0.2);
 }
 
 .connection-status.disconnected {
 	background: rgba(239, 68, 68, 0.1);
-	color: #ef4444;
+	color: var(--danger);
 	border: 1px solid rgba(239, 68, 68, 0.2);
 }
 

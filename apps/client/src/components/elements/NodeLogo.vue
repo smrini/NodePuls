@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import logo from '../../../public/nodepuls.svg'
+import logo from '../../assets/nodepuls.svg'
 </script>
       
 <template>

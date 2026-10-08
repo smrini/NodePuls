@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import WebsiteCard from '../components/elements/WebsiteCard.vue'
+import Block from '../components/layout/Block.vue'
+import { useWebsites } from '../composables/useWebsites'
+
 defineOptions({ name: 'DashboardPage' })
 
-import WebsiteMonitor from '../components/elements/WebsiteMonitor.vue'
-import Block from '../components/layout/Block.vue'
+const { websites, moveWebsite, toggleWebsiteExpansion, isWebsiteExpanded } = useWebsites()
 </script>
 
 <template>
@@ -13,7 +16,15 @@ import Block from '../components/layout/Block.vue'
       </Block>
       <Block title="Website Monitoring" actionButtonTitle="Export/Import Options" showActionButton>
         <p>Welcome to the NodePuls Dashboard!</p>
-        <WebsiteMonitor />
+        <WebsiteCard
+          v-for="(website, index) in websites"
+          :key="website.id"
+          :website="website"
+          :index="index"
+          :isExpanded="isWebsiteExpanded(website.id)"
+          @move-card="moveWebsite"
+          @toggle-expansion="toggleWebsiteExpansion"
+        />
       </Block>
       <Block title="Resource Usage">
         <p>Welcome to the NodePuls Dashboard!</p>

@@ -10,6 +10,7 @@
     "typecheck": "vue-tsc -b --noEmit"
   },
   "dependencies": {
+    "@nodepuls/shared-types": "file:../../packages/shared-types",
     "vue": "^3.5.13"
   },
   "devDependencies": {

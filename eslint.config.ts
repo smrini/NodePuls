@@ -39,7 +39,10 @@ export default tseslint.config(
       'vue/component-name-in-template-casing': ['error', 'PascalCase'],
       'vue/define-macros-order': [
         'error',
-        { order: ['defineOptions', 'defineProps', 'defineEmits'], defineExposeLast: true },
+        {
+          order: ['import', 'defineOptions', 'defineProps', 'defineEmits'],
+          defineExposeLast: true,
+        },
       ],
       'vue/no-unused-vars': 'error',
       'vue/require-default-prop': 'off',

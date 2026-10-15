@@ -2,35 +2,41 @@
 const props = withDefaults(
   defineProps<{
     title: string
-    icon: string
     resources: { title: string; value: number; unit: string }[]
-    mainValue: {
+    mainValue?: {
       value: number
       unit: string
     }
   }>(),
   {},
 )
+
+const getUsageColor = (usage: number) => {
+  if (usage < 50) return 'good'
+  if (usage < 80) return 'warning'
+  return 'critical'
+}
 </script>
 
 <template>
-  <div className="stat-card">
-    <div className="stat-header">
+  <div class="stat-card">
+    <div class="stat-header">
       <div>
-        <component :is="props.icon" :size="20" />
+        <slot></slot>
         <span>{{ props.title }}</span>
       </div>
     </div>
-    <div className="stat-content">
-      <div className="stat-usage-row">
-        <div className="stat-usage-info">
-          <div v-for="resource in props.resources" :key="resource.title" className="detail">
+    <div class="stat-content">
+      <div class="stat-usage-row">
+        <div class="stat-usage-info">
+          <div v-for="resource in props.resources" :key="resource.title" class="detail">
             <span>{{ resource.title }}: {{ resource.value }} {{ resource.unit }}</span>
           </div>
         </div>
       </div>
-      <div className="progress-bar">
-        <div className="progress" :style="{ width: props.mainValue.value + '%' }"></div>
+      <div class="progress-bar" v-if="props.mainValue">
+        <div class="progress-fill" :class="getUsageColor(props.mainValue.value)" :style="{ width: props.mainValue.value + '%' }"></div>
+
       </div>
     </div>
   </div>
@@ -68,7 +74,65 @@ const props = withDefaults(
   gap: 0.5rem;
 }
 
+.stat-header:has(.stat-dropdown) > div:first-child span {
+  position: relative;
+}
+
 .stat-dropdown {
   position: relative;
 }
+
+.detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #374151;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.progress-fill.good {
+  background: #22c55e;
+}
+.progress-fill.warning {
+  background: #f59e0b;
+}
+.progress-fill.critical {
+  background: #ef4444;
+}
+
+/* System Stats Content Layout */
+.stat-content {
+	display: flex;
+	flex-direction: column;
+}
+
+.stat-usage-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 1rem;
+}
+
+.stat-usage-info {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+
 </style>

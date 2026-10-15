@@ -3,7 +3,7 @@ import WebsiteCard from '../components/elements/WebsiteCard.vue'
 import Block from '../components/layout/Block.vue'
 import SystemCard from '../components/elements/SystemCard.vue'
 import { useWebsites } from '../composables/useWebsites'
-
+import { CpuIcon, MemoryStick, HardDrive, Network } from '@lucide/vue'
 
 defineOptions({ name: 'DashboardPage' })
 
@@ -14,24 +14,48 @@ const { websites, moveWebsite, toggleWebsiteExpansion, isWebsiteExpanded } = use
   <section class="dashboard">
     <div class="dashboard-grid">
       <Block title="System Overview">
-        <SystemCard
-          title="CPU Usage"
-          icon="CpuIcon"
-          :resources="[
-            { title: 'Cores', value: 4, unit: '' },
-            { title: 'Threads', value: 8, unit: '' },
-          ]"
-          :mainValue="{ value: 65, unit: '%' }"
-        />
-        <SystemCard
-          title="Memory Usage"
-          icon="MemoryIcon"
-          :resources="[
-            { title: 'Total', value: 16, unit: 'GB' },
-            { title: 'Used', value: 10, unit: 'GB' },
-          ]"
-          :mainValue="{ value: 62.5, unit: '%' }"
-        />
+        <div class="system-stats">
+          <SystemCard
+            title="CPU"
+            :resources="[
+              { title: 'Cores', value: 4, unit: '' },
+              { title: 'Threads', value: 8, unit: '' },
+              { title: 'Temp', value: 54, unit: '°C' },
+            ]"
+            :mainValue="{ value: 42, unit: '%' }"
+          >
+            <CpuIcon />
+          </SystemCard>
+          <SystemCard
+            title="Disk"
+            :resources="[
+              { title: 'Used', value: 5.74, unit: 'GB' },
+              { title: 'Total', value: 48.91, unit: 'GB' },
+            ]"
+            :mainValue="{ value: 13.5, unit: '%' }"
+          >
+            <HardDrive :size="20" />
+          </SystemCard>
+          <SystemCard
+            title="Memory"
+            :resources="[
+              { title: 'Total', value: 16, unit: 'GB' },
+              { title: 'Used', value: 10, unit: 'GB' },
+            ]"
+            :mainValue="{ value: 62.5, unit: '%' }"
+          >
+            <MemoryStick :size="20" />
+          </SystemCard>
+          <SystemCard
+            title="Network"
+            :resources="[
+              { title: 'Upload', value: 583.96, unit: 'B/s' },
+              { title: 'Download', value: 785.2, unit: 'B/s' },
+            ]"
+          >
+            <Network :size="20" />
+          </SystemCard>
+        </div>
       </Block>
       <Block title="Website Monitoring" actionButtonTitle="Export/Import Options" showActionButton>
         <WebsiteCard
@@ -64,5 +88,11 @@ const { websites, moveWebsite, toggleWebsiteExpansion, isWebsiteExpanded } = use
   grid-template-rows: auto auto;
   gap: 2rem;
   align-items: start;
+}
+
+.system-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 </style>
